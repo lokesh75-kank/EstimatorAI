@@ -14,10 +14,10 @@ from .models import (
 )
 import json
 from .services import AWSService, OpenAIService
-from .config import AWS_SERVICES, OPENAI_CONFIG
+from .config import AWSConfig, OpenAIConfig
 
 class EstimatorAgent:
-    def __init__(self):
+    def __init__(self, aws_config: Optional[AWSConfig] = None, openai_config: Optional[OpenAIConfig] = None):
         self.regional_codes = {
             "US": {
                 "NFPA": ["72", "101", "13", "14", "20", "25"],
@@ -43,8 +43,8 @@ class EstimatorAgent:
             }
         }
 
-        self.aws_service = AWSService() if any(AWS_SERVICES.values()) else None
-        self.openai_service = OpenAIService() if OPENAI_CONFIG['enabled'] else None
+        self.aws_service = AWSService(aws_config) if aws_config else None
+        self.openai_service = OpenAIService(openai_config) if openai_config else None
 
     def analyze_project_scope(self, drawings: Dict, specifications: Dict) -> List[SystemSpecification]:
         """

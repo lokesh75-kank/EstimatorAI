@@ -9,10 +9,31 @@ from .models import (
     Subcontractor,
     ProjectLocation,
     SystemType,
-    Proposal
+    Proposal,
+    EmailMessage,
+    EmailAttachment,
+    ParsedDocument,
+    DocumentType,
+    AgentRole,
+    AgentAction,
+    AgentWorkflow,
+    ProposalTemplate
+)
+from .config import AWSConfig, OpenAIConfig, LangChainConfig, VectorDBConfig
+from .services import (
+    AWSService, 
+    OpenAIService, 
+    EmailService,
+    ApprovalService,
+    ApprovalStatus,
+    ApprovalRequest,
+    NotificationService,
+    AgentService,
+    DocumentService,
+    ProposalService
 )
 
-__version__ = "1.0.0"
+__version__ = "0.4.0"
 __all__ = [
     "EstimatorAgent",
     "ProjectEstimate",
@@ -24,5 +45,27 @@ __all__ = [
     "Subcontractor",
     "ProjectLocation",
     "SystemType",
-    "Proposal"
+    "Proposal",
+    "EmailMessage",
+    "EmailAttachment",
+    "ParsedDocument",
+    "DocumentType",
+    "AgentRole",
+    "AgentAction",
+    "AgentWorkflow",
+    "ProposalTemplate",
+    "AWSConfig",
+    "OpenAIConfig",
+    "LangChainConfig",
+    "VectorDBConfig",
+    "AWSService",
+    "OpenAIService",
+    "EmailService",
+    "ApprovalService",
+    "ApprovalStatus",
+    "ApprovalRequest",
+    "NotificationService",
+    "AgentService",
+    "DocumentService",
+    "ProposalService",
 ] 

@@ -1,235 +1,131 @@
-# Fire & Security Systems Estimator AI
+# AI-Powered Fire & Security Systems Estimator
 
-A specialized AI agent for generating accurate cost estimates and technical proposals for fire protection and security systems across commercial, industrial, and residential sectors in the United States and Canada.
+An intelligent estimation system that automates the process of generating accurate, compliant proposals for fire alarm and security systems integration.
 
-## Development Plan
+## 🎯 Target Audience
 
-### Phase 1: Core Backend Development (Current)
-1. **System Detection & Analysis**
-   - [x] Basic keyword-based system detection
-   - [x] AI-powered system detection using OpenAI
-   - [ ] Drawing analysis integration
-   - [ ] Specification parsing improvements
+- Fire alarms and Security Systems Integrators (small to mid-sized)
+- General Contractors & Builders needing turnkey safety solutions
+- Facility Managers for schools, hospitals, warehouses, etc.
+- Architectural & MEP Engineering Firms
+- Government & Municipal Agencies
 
-2. **Cost Calculation Engine**
-   - [x] Material cost calculations
-   - [x] Labor cost calculations
-   - [x] Equipment cost calculations
-   - [x] Subcontractor cost calculations
-   - [ ] Real-time supplier price updates
-   - [ ] Regional cost adjustments
-   - [ ] Historical cost database integration
+## 💡 Core Features
 
-3. **Compliance & Standards**
-   - [x] Basic NFPA/ULC code checking
-   - [x] Regional code database
-   - [ ] Dynamic code updates
-   - [ ] Insurance requirement checking
-   - [ ] Local building code integration
-
-4. **Value Engineering**
-   - [x] Basic cost optimization suggestions
-   - [x] AI-powered value engineering
-   - [ ] Alternative solution recommendations
-   - [ ] ROI calculations
-   - [ ] Energy efficiency analysis
-
-### Phase 2: API & Integration (Next)
-1. **API Development**
-   - [x] Basic FastAPI setup
-   - [x] Core endpoints
-   - [ ] Authentication & authorization
-   - [ ] Rate limiting
-   - [ ] API versioning
-   - [ ] Webhook support
-
-2. **Data Storage**
-   - [ ] Project database setup
-   - [ ] Cost history tracking
-   - [ ] User preferences
-   - [ ] Template management
-   - [ ] Backup & recovery
-
-3. **External Integrations**
-   - [ ] Supplier API integration
-   - [ ] Drawing software integration
-   - [ ] Project management tools
-   - [ ] Accounting software
-   - [ ] CRM systems
-
-### Phase 3: Frontend Development
-1. **User Interface**
-   - [ ] Project creation wizard
-   - [ ] Drawing upload & analysis
-   - [ ] Cost breakdown visualization
-   - [ ] Proposal builder
-   - [ ] Dashboard & reporting
-
-2. **User Experience**
-   - [ ] Responsive design
-   - [ ] Dark/light mode
-   - [ ] Accessibility features
-   - [ ] Mobile optimization
-   - [ ] Offline support
-
-3. **Advanced Features**
-   - [ ] Real-time collaboration
-   - [ ] Version control
-   - [ ] Template customization
-   - [ ] Batch processing
-   - [ ] Export options
-
-### Phase 4: AI & Machine Learning
-1. **Enhanced AI Capabilities**
-   - [ ] Drawing recognition
-   - [ ] Specification analysis
-   - [ ] Cost prediction
-   - [ ] Risk assessment
-   - [ ] Value engineering
-
-2. **Learning & Improvement**
-   - [ ] Cost accuracy tracking
-   - [ ] User feedback integration
-   - [ ] Performance metrics
-   - [ ] Automated updates
-   - [ ] Quality assurance
-
-### Phase 5: Testing & Deployment
-1. **Testing**
-   - [ ] Unit tests
-   - [ ] Integration tests
-   - [ ] Performance tests
-   - [ ] Security audits
-   - [ ] User acceptance testing
-
-2. **Deployment**
-   - [ ] CI/CD pipeline
-   - [ ] Containerization
-   - [ ] Cloud infrastructure
-   - [ ] Monitoring setup
-   - [ ] Backup systems
-
-3. **Documentation**
-   - [ ] API documentation
-   - [ ] User guides
-   - [ ] Developer guides
-   - [ ] Training materials
-   - [ ] Maintenance procedures
-
-## Current Features
-
-- Project cost estimation for multiple system types:
-  - Fire alarm systems (NFPA, UL/ULC standards)
-  - Fire suppression systems (wet/dry/clean agent)
-  - Access control and intrusion detection
-  - Video surveillance (CCTV) and perimeter security
-
-- Comprehensive cost breakdowns including:
-  - Material costs with supplier information
-  - Labor costs with regional rate adjustments
-  - Equipment rental costs
-  - Subcontractor costs
-  - Contingency calculations
-  - Tax calculations
-
-- Regional compliance checking:
-  - NFPA standards (US)
-  - ULC standards (Canada)
-  - Local building codes
-  - Insurance requirements
-
-- Value engineering suggestions
-- Risk factor identification
+### 1. Intelligence Layer
+- LLM-powered understanding of customer requirements
+- NFPA, NEC, UL standards compliance
+- Automated BoM generation and system layout recommendations
 - Professional proposal generation
 
-## Installation
+### 2. Input Collection Engine
+- Email parser for requirements
+- Blueprint/AutoCAD parser
+- Form-based input for scope details
+- Image & floor plan recognition
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/estimator-ai-agent.git
-cd estimator-ai-agent
-```
+### 3. Cost Estimation Engine
+- Vendor pricing database
+- Automated device estimation
+- Labor and permit cost calculation
+- Dynamic profit margin management
 
-2. Create a virtual environment and activate it:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+### 4. Proposal Generation Engine
+- Auto-populated templates
+- Comprehensive SOW sections
+- Customizable branding
+- Compliance documentation
 
+### 5. Deployment & Compliance
+- AWS infrastructure (GovCloud support)
+- Model validation pipeline
+- Regular compliance updates
+- SOC2 + ISO 27001 compliance
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.9+
+- Node.js 16+
+- AWS Account
+- OpenAI API Key
+
+### Quick Start
+1. Clone the repository
+2. Set up environment variables (see `docs/environment-setup.md`)
 3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   # Backend
+   pip install -r requirements.txt
+   
+   # Frontend
+   cd frontend
+   npm install
+   ```
+4. Start the development servers:
+   ```bash
+   # Backend
+   uvicorn estimator_agent.api:app --reload --port 8001
+   
+   # Frontend
+   cd frontend
+   npm start
+   ```
 
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
+## 📚 Documentation
 
-## Usage
+- [Development Setup](docs/development-setup.md)
+- [Environment Configuration](docs/environment-setup.md)
+- [API Documentation](docs/api-documentation.md)
 
-1. Start the API server:
-```bash
-uvicorn estimator_agent.api:app --reload
-```
+## 🔐 Security
 
-2. Access the API documentation at `http://localhost:8000/docs`
+- All API keys stored in AWS Secrets Manager
+- SOC2 + ISO 27001 compliance
+- Regular security audits
+- Data encryption at rest and in transit
 
-### API Endpoints
-
-- `POST /estimate`: Generate a project estimate
-- `POST /proposal`: Generate a proposal from an estimate
-- `GET /codes/{country}`: Get applicable codes for a country
-- `GET /labor-rates/{country}`: Get labor rates for a country
-
-### Example Usage
-
-```python
-from estimator_agent.models import ProjectLocation
-from estimator_agent.agent import EstimatorAgent
-
-# Initialize the estimator
-estimator = EstimatorAgent()
-
-# Create a project location
-location = ProjectLocation(
-    country="US",
-    state_province="CA",
-    city="San Francisco",
-    postal_code="94105",
-    seismic_zone="4",
-    climate_zone="3"
-)
-
-# Generate an estimate
-estimate = estimator.generate_estimate(
-    project_id="PROJ-001",
-    client_name="Acme Corp",
-    project_name="Office Building Fire Protection",
-    location=location,
-    drawings={},  # Add your drawings data
-    specifications={}  # Add your specifications data
-)
-
-# Generate a proposal
-proposal = estimator.generate_proposal(estimate)
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## 🛠️ Development Best Practices
 
-- NFPA for fire protection standards
-- ULC for Canadian standards
-- Various industry partners for cost data and best practices 
+### Version Control
+- Use Git religiously — commit after each working section
+- Don't trust built-in revert functions yet
+- If AI gets stuck in loops, git reset --hard and start fresh
+
+### Testing Strategy
+- Write high-level integration tests that simulate user clicking through the app
+- Avoid low-level unit tests — focus on end-to-end functionality
+- Implement tests before moving to the next feature
+- Use tests as guardrails for safe refactoring
+
+### Debugging
+- Copy-paste error messages directly into the LLM
+- Ask AI to think through 3-4 possible causes before coding
+- Reset after each failed attempt — don't accumulate "layers of crap"
+- Add extensive logging when debugging complex issues
+- If one model fails repeatedly, switch to a different LLM
+
+### Advanced Configuration
+- Write detailed instructions files (some founders write 100+ lines)
+- Download API docs locally instead of pointing to web docs
+- Use screenshots to show UI bugs or design inspiration
+- Try voice input tools like Aqua for 2x faster prompting
+
+### Architecture Best Practices
+- Keep files small and modular — easier for both humans and LLMs
+- Choose mature frameworks with lots of training data (Rails > Rust/Elixir)
+- Build complex features as standalone projects first, then integrate
+- Use service-based architecture with clear API boundaries
+- Test complex functionality in isolation before adding to main codebase 
