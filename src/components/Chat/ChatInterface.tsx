@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { OpenAI } from 'openai';
+import { apiService } from '@/services/api';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -11,10 +11,6 @@ interface Message {
 interface ChatInterfaceProps {
   projectId: string;
 }
-
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -40,21 +36,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
     setIsLoading(true);
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert in fire safety and building codes. Answer questions based on NFPA and IBC standards. Be precise and provide code references when possible."
-          },
-          ...messages,
-          userMessage
-        ],
+      // Send message to backend
+      const response = await apiService.analyzeProject({
+        projectId,
+        fileContent: input
       });
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: completion.choices[0].message.content || 'Sorry, I could not process your request.',
+        content: response.analysis.content || 'Sorry, I could not process your request.',
       };
 
       setMessages(prev => [...prev, assistantMessage]);

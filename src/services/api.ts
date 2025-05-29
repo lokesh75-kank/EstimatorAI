@@ -14,7 +14,30 @@ import type {
   ErrorResponse
 } from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Get API URL from environment with validation
+const getApiUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    console.warn('NEXT_PUBLIC_API_URL is not set, using default URL');
+    return 'http://localhost:3001/api';
+  }
+  
+  // Ensure URL ends with /api
+  if (!apiUrl.endsWith('/api')) {
+    console.warn('NEXT_PUBLIC_API_URL should end with /api');
+    return apiUrl.endsWith('/') ? `${apiUrl}api` : `${apiUrl}/api`;
+  }
+  
+  return apiUrl;
+};
+
+const API_BASE_URL = getApiUrl();
+
+// Debug log the API configuration
+console.log('API Configuration:', {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  API_BASE_URL,
+});
 
 class ApiService {
   private api: AxiosInstance;
@@ -27,12 +50,20 @@ class ApiService {
       },
     });
 
+    // Debug log the axios instance configuration
+    console.log('Axios Instance Configuration:', {
+      baseURL: this.api.defaults.baseURL,
+      headers: this.api.defaults.headers,
+    });
+
     this.setupInterceptors();
   }
 
   private setupInterceptors() {
     this.api.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
+        // Debug log each request
+        console.log('Making request to:', config.url, 'with baseURL:', config.baseURL);
         const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -45,6 +76,13 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error: AxiosError<ErrorResponse>) => {
+        // Debug log response errors
+        console.error('API Error:', {
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           window.location.href = '/login';
@@ -156,4 +194,46 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();
+
+export interface Estimation {
+  id: string;
+  name: string;
+  status: 'draft' | 'in_progress' | 'completed';
+  createdAt: string;
+  lastModified: string;
+}
+
+export interface DashboardStats {
+  total: number;
+  completed: number;
+  inProgress: number;
+}
+
+export const estimationApi = {
+  // Get all estimations
+  getEstimations: async (): Promise<Estimation[]> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/estimations`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching estimations:', error);
+      return [];
+    }
+  },
+
+  // Get dashboard statistics
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/estimations/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      return {
+        total: 0,
+        completed: 0,
+        inProgress: 0
+      };
+    }
+  }
+}; 

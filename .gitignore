@@ -10,6 +10,8 @@ __pycache__/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
+!.env.example
 
 # Build outputs
 build/
@@ -28,6 +30,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 
 # Testing
 coverage/
@@ -78,5 +81,19 @@ wheels/
 .installed.cfg
 *.egg
 
-# Credentials
-cred.txt 
+# Credentials and sensitive files
+cred.txt
+*credentials*
+*secret*
+*key*
+*password*
+*token*
+
+# Upload directories
+backend/uploads/
+uploads/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/ 

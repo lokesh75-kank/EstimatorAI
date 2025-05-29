@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatInterface from '@/components/Chat/ChatInterface';
-import documentService from '@/services/documentService';
+import { apiService } from '@/services/api';
 
 interface ProjectDetails {
   buildingType: string;
@@ -25,17 +25,8 @@ const EstimationWizard: React.FC = () => {
     projectName: '',
     projectDescription: '',
   });
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [extractedMetadata, setExtractedMetadata] = useState<Record<string, any> | null>(null);
-
-  const steps = [
-    { id: 1, title: 'Project Overview' },
-    { id: 2, title: 'Building Details' },
-    { id: 3, title: 'Upload Documents' },
-    { id: 4, title: 'Chat & Clarification' },
-    { id: 5, title: 'Review & Submit' },
-  ];
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -45,33 +36,31 @@ const EstimationWizard: React.FC = () => {
     }));
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setUploadedFiles(prev => [...prev, ...files]);
-    setIsUploading(true);
-
-    try {
-      // Only process the first file for metadata extraction for now
-      if (files.length > 0) {
-        const metadata = await documentService.uploadDocument(files[0]);
-        setExtractedMetadata(metadata.extractedData);
-        // Optionally auto-fill fields if metadata is available
-        setProjectDetails(prev => ({
-          ...prev,
-          buildingType: metadata.extractedData?.buildingType || prev.buildingType,
-          squareFootage: metadata.extractedData?.squareFootage || prev.squareFootage,
-          numberOfFloors: metadata.extractedData?.numberOfFloors || prev.numberOfFloors,
-          numberOfZones: metadata.extractedData?.numberOfZones || prev.numberOfZones,
-        }));
+  const handleNext = async () => {
+    if (currentStep === 1 && !projectId) {
+      // Create project on first step
+      try {
+        setIsSubmitting(true);
+        const project = await apiService.createProject({
+          clientName: projectDetails.projectName,
+          clientEmail: 'temp@example.com', // This should be replaced with actual user email
+          building: {
+            type: projectDetails.buildingType,
+            size: projectDetails.squareFootage,
+            floors: projectDetails.numberOfFloors,
+            zones: projectDetails.numberOfZones,
+          },
+          status: 'draft',
+        });
+        setProjectId(project.id);
+      } catch (error) {
+        console.error('Failed to create project:', error);
+        return;
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      setIsUploading(false);
     }
-  };
-
-  const handleNext = () => {
+    
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
     }
@@ -81,19 +70,34 @@ const EstimationWizard: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
     } else {
-      // If we're on the first step, navigate back to the previous page
       router.back();
     }
   };
 
   const handleSubmit = async () => {
+    if (!projectId) return;
+    
     try {
-      // TODO: Implement API call to save project details
-      router.push('/dashboard');
+      setIsSubmitting(true);
+      // Update project status to in_progress
+      await apiService.updateProject(projectId, {
+        status: 'in_progress'
+      });
+      router.push(`/projects/${projectId}`);
     } catch (error) {
       console.error('Error saving project:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const steps = [
+    { id: 1, title: 'Project Overview' },
+    { id: 2, title: 'Building Details' },
+    { id: 3, title: 'Upload Documents' },
+    { id: 4, title: 'Chat & Clarification' },
+    { id: 5, title: 'Review & Submit' },
+  ];
 
   const renderStep = () => {
     switch (currentStep) {
@@ -111,6 +115,7 @@ const EstimationWizard: React.FC = () => {
                   onChange={handleInputChange}
                   className="input-field"
                   placeholder="Enter project name"
+                  required
                 />
               </div>
               <div>
@@ -122,6 +127,7 @@ const EstimationWizard: React.FC = () => {
                   rows={4}
                   className="input-field"
                   placeholder="Describe your project..."
+                  required
                 />
               </div>
             </div>
@@ -131,16 +137,6 @@ const EstimationWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Building Details</h2>
-            {extractedMetadata && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
-                <h3 className="font-semibold text-blue-700 mb-2">Extracted Metadata</h3>
-                <ul className="text-sm text-blue-900 space-y-1">
-                  {Object.entries(extractedMetadata).map(([key, value]) => (
-                    <li key={key}><span className="font-medium">{key}:</span> {String(value)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="form-label">Building Type</label>
@@ -149,6 +145,7 @@ const EstimationWizard: React.FC = () => {
                   value={projectDetails.buildingType}
                   onChange={handleInputChange}
                   className="input-field"
+                  required
                 >
                   <option value="">Select Building Type</option>
                   <option value="commercial">Commercial</option>
@@ -166,6 +163,8 @@ const EstimationWizard: React.FC = () => {
                   onChange={handleInputChange}
                   className="input-field"
                   placeholder="Enter square footage"
+                  required
+                  min="0"
                 />
               </div>
               <div>
@@ -178,6 +177,7 @@ const EstimationWizard: React.FC = () => {
                   min="1"
                   className="input-field"
                   placeholder="Enter number of floors"
+                  required
                 />
               </div>
               <div>
@@ -190,6 +190,7 @@ const EstimationWizard: React.FC = () => {
                   min="1"
                   className="input-field"
                   placeholder="Enter number of zones"
+                  required
                 />
               </div>
             </div>
@@ -199,70 +200,17 @@ const EstimationWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Upload Documents</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
-              <div className="text-center">
-                <svg
-                  className="mx-auto h-16 w-16 text-gray-400"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <p className="mt-4 text-sm text-gray-600">
-                  Drag and drop your RFQs, blueprints, and SOWs here, or click to select files
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="btn-primary mt-4"
-                >
-                  {isUploading ? 'Uploading...' : 'Select Files'}
-                </label>
-              </div>
+            <p className="text-sm text-gray-600">
+              Upload any relevant documents, drawings, or specifications for your project.
+            </p>
+            <div className="mt-4">
+              <input
+                type="file"
+                multiple
+                className="input-field"
+                accept=".pdf,.doc,.docx,.txt"
+              />
             </div>
-            {uploadedFiles.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-medium text-gray-900">Uploaded Files</h3>
-                <ul className="mt-4 divide-y divide-gray-200 rounded-lg border border-gray-200">
-                  {uploadedFiles.map((file, index) => (
-                    <li key={index} className="flex items-center justify-between p-4 hover:bg-gray-50">
-                      <div className="flex items-center space-x-3">
-                        <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-900">{file.name}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {extractedMetadata && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
-                <h3 className="font-semibold text-blue-700 mb-2">Extracted Metadata</h3>
-                <ul className="text-sm text-blue-900 space-y-1">
-                  {Object.entries(extractedMetadata).map(([key, value]) => (
-                    <li key={key}><span className="font-medium">{key}:</span> {String(value)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         );
       case 4:
@@ -273,7 +221,7 @@ const EstimationWizard: React.FC = () => {
               Ask questions about your estimation, building codes, or requirements.
             </p>
             <div className="mt-4">
-              <ChatInterface projectId="temp" />
+              {projectId && <ChatInterface projectId={projectId} />}
             </div>
           </div>
         );
@@ -304,12 +252,6 @@ const EstimationWizard: React.FC = () => {
                   <dt className="text-sm font-medium text-gray-500">Number of Zones</dt>
                   <dd className="mt-1 text-sm text-gray-900">{projectDetails.numberOfZones}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Uploaded Files</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {uploadedFiles.length} file(s)
-                  </dd>
-                </div>
               </dl>
             </div>
           </div>
@@ -320,75 +262,63 @@ const EstimationWizard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {steps.map((step) => (
-            <div
-              key={step.id}
-              className={`flex items-center ${
-                step.id !== steps.length ? 'flex-1' : ''
-              }`}
+          <h1 className="text-3xl font-bold text-gray-900">New Estimation</h1>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleBack}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep >= step.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
+              Back
+            </button>
+            {currentStep < steps.length ? (
+              <button
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {step.id}
-              </div>
-              {step.id !== steps.length && (
+                {isSubmitting ? 'Processing...' : 'Next'}
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit'}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center">
                 <div
-                  className={`flex-1 h-1 mx-2 ${
-                    currentStep > step.id ? 'bg-blue-600' : 'bg-gray-200'
+                  className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                    currentStep > step.id
+                      ? 'bg-green-500 text-white'
+                      : currentStep === step.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-600'
                   }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between mt-4">
-          {steps.map((step) => (
-            <span
-              key={step.id}
-              className={`text-sm font-medium ${
-                currentStep >= step.id ? 'text-blue-600' : 'text-gray-500'
-              }`}
-            >
-              {step.title}
-            </span>
-          ))}
+                >
+                  {currentStep > step.id ? '✓' : step.id}
+                </div>
+                <div className="ml-2 text-sm font-medium text-gray-900">{step.title}</div>
+                {index < steps.length - 1 && (
+                  <div className="w-24 h-0.5 bg-gray-200 mx-4" />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg p-8">
+      <div className="bg-white rounded-lg shadow-lg p-6">
         {renderStep()}
-      </div>
-
-      <div className="mt-8 flex justify-between">
-        <button
-          onClick={handleBack}
-          className="btn-secondary"
-        >
-          {currentStep === 1 ? 'Back to Dashboard' : 'Back'}
-        </button>
-        {currentStep === steps.length ? (
-          <button
-            onClick={handleSubmit}
-            className="btn-primary"
-          >
-            Submit
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            className="btn-primary"
-          >
-            Next
-          </button>
-        )}
       </div>
     </div>
   );

@@ -1,22 +1,22 @@
 import openai
 from typing import Optional, Dict, Any
-from ..config import OpenAIConfig
+# from ..config import OpenAIConfig  # Removed, as OpenAIConfig does not exist
 
 class OpenAIService:
-    def __init__(self, config: OpenAIConfig):
+    def __init__(self, config: dict):
         self.config = config
-        openai.api_key = config.api_key
+        openai.api_key = config['api_key']
 
     def generate_estimate(self, project_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         try:
             response = openai.ChatCompletion.create(
-                model=self.config.model,
+                model=self.config['model'],
                 messages=[
                     {"role": "system", "content": "You are an expert construction estimator."},
                     {"role": "user", "content": f"Generate an estimate for this project: {project_data}"}
                 ],
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens
+                temperature=self.config['temperature'],
+                max_tokens=self.config['max_tokens']
             )
             
             # Parse the response content as JSON
@@ -30,13 +30,13 @@ class OpenAIService:
     def generate_proposal(self, estimate_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         try:
             response = openai.ChatCompletion.create(
-                model=self.config.model,
+                model=self.config['model'],
                 messages=[
                     {"role": "system", "content": "You are an expert proposal writer."},
                     {"role": "user", "content": f"Generate a proposal based on this estimate: {estimate_data}"}
                 ],
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens
+                temperature=self.config['temperature'],
+                max_tokens=self.config['max_tokens']
             )
             
             # Parse the response content as JSON

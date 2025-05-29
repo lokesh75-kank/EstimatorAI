@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
-from pydantic import BaseSettings, PostgresDsn, RedisDsn
+from pydantic_settings import BaseSettings
+from pydantic.networks import PostgresDsn, RedisDsn
 from functools import lru_cache
 
 # Load environment variables from .env file

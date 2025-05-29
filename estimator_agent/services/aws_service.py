@@ -1,15 +1,15 @@
 import boto3
 from typing import Optional
-from ..config import AWSConfig
+# from ..config import AWSConfig  # Removed, as AWSConfig does not exist
 
 class AWSService:
-    def __init__(self, config: AWSConfig):
+    def __init__(self, config: dict):
         self.config = config
         self.client = boto3.client(
             's3',
-            region_name=config.region_name,
-            aws_access_key_id=config.aws_access_key_id,
-            aws_secret_access_key=config.aws_secret_access_key
+            region_name=config.get('region_name'),
+            aws_access_key_id=config.get('aws_access_key_id'),
+            aws_secret_access_key=config.get('aws_secret_access_key')
         )
 
     def upload_file(self, file_path: str, bucket_name: str, object_name: str) -> bool:

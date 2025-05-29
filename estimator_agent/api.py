@@ -7,8 +7,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Dict, Optional, List, Any
 from pydantic import BaseModel
-from .models import ProjectLocation, ProjectEstimate, Proposal, Project, ProjectStatus, Message
-from .agent import EstimatorAgent
+from estimator_agent.models import ProjectLocation, ProjectEstimate, Proposal, Project, ProjectStatus, Message
+from estimator_agent.agent import EstimatorAgent
 import json
 import uuid
 from datetime import datetime
@@ -17,21 +17,31 @@ import base64
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Email, To, Content, Attachment, FileContent, FileName, FileType, Disposition
 import openai
-from .services import AgentService
+from estimator_agent.services import AgentService
 import logging
 from logging.handlers import RotatingFileHandler
 import time
 from functools import wraps
+from fastapi.responses import JSONResponse
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        RotatingFileHandler('api.log', maxBytes=10000000, backupCount=5),
-        logging.StreamHandler()
-    ]
-)
+# Logging configuration
+LOG_FILE = "backend_debug.log"
+LOG_LEVEL = logging.DEBUG
+
+# Create a rotating file handler (5MB per file, keep 3 backups)
+file_handler = RotatingFileHandler(LOG_FILE, maxBytes=5*1024*1024, backupCount=3)
+file_handler.setLevel(LOG_LEVEL)
+file_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+
+# Create a stream handler for console output
+console_handler = logging.StreamHandler()
+console_handler.setLevel(LOG_LEVEL)
+console_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+console_handler.setFormatter(console_formatter)
+
+# Get the root logger and configure it
+logging.basicConfig(level=LOG_LEVEL, handlers=[file_handler, console_handler])
 logger = logging.getLogger(__name__)
 
 # Initialize rate limiter
@@ -699,4 +709,18 @@ async def get_metrics(api_key: str = Depends(verify_api_key)):
         "total_estimates": len(ESTIMATES),
         "total_files": sum(len(files) for files in FILES.values()),
         "timestamp": datetime.now().isoformat()
-    } 
+    }
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled error: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+file_handler = logging.FileHandler("backend_debug.log")
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+file_handler.setFormatter(formatter)
+logging.getLogger().addHandler(file_handler) 
