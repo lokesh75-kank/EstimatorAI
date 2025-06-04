@@ -408,6 +408,7 @@ class EstimatorAgent:
             location=location,
             systems=systems,
             cost_breakdown=cost_breakdown,
+            total_cost=cost_breakdown.grand_total,
             valid_until=datetime.now() + timedelta(days=30),
             compliance_codes=all_compliance_codes,
             risk_factors=all_risk_factors,

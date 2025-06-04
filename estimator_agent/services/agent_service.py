@@ -150,22 +150,18 @@ class AgentService:
         )
         
     @tool
-    def generate_proposal(self, estimate: ProjectEstimate) -> Proposal:
+    def generate_proposal(self, estimate: dict) -> Proposal:
         """
         Generate a proposal from an estimate
-        
         Args:
-            estimate: ProjectEstimate object
-            
+            estimate: ProjectEstimate object as a dict
         Returns:
             Proposal object
         """
-        # Implementation would call the EstimatorAgent to generate the proposal
-        # This is a placeholder for the actual implementation
         from ..agent import EstimatorAgent
-        
         estimator = EstimatorAgent()
-        return estimator.generate_proposal(estimate)
+        estimate_obj = ProjectEstimate(**estimate)
+        return estimator.generate_proposal(estimate_obj)
         
     def create_project_workflow(self, project_id: str, documents: List[Dict[str, Any]]) -> AgentWorkflow:
         """

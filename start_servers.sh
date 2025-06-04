@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# Set environment variables
+export NODE_ENV=development
+
 # Start backend server
 echo "Starting backend server..."
 cd estimator_agent
-uvicorn api:app --host 0.0.0.0 --port 8001 --reload &
+uvicorn api:app --host 0.0.0.0 --port 3001 --reload &
 BACKEND_PID=$!
 
 # Wait for backend to start
@@ -13,7 +16,7 @@ sleep 5
 # Start frontend server
 echo "Starting frontend server..."
 cd ../frontend
-npm start &
+npm run dev &
 FRONTEND_PID=$!
 
 # Function to handle script termination

@@ -27,6 +27,7 @@ const EstimationWizard: React.FC = () => {
   });
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -34,33 +35,70 @@ const EstimationWizard: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user makes changes
+    setError(null);
   };
 
   const handleNext = async () => {
     if (currentStep === 1 && !projectId) {
-      // Create project on first step
+      // Validate only projectName (and optionally projectDescription) on step 1
+      if (!projectDetails.projectName) {
+        setError('Please enter a project name.');
+        return;
+      }
+      setError(null);
+      setCurrentStep(prev => prev + 1);
+      return;
+    }
+    if (currentStep === 2 && !projectId) {
+      // Validate building details on step 2
+      if (!projectDetails.buildingType || !projectDetails.squareFootage) {
+        setError('Please fill in all building details.');
+        return;
+      }
+      setError(null);
+      // Create project on step 2
       try {
         setIsSubmitting(true);
         const project = await apiService.createProject({
-          clientName: projectDetails.projectName,
+          projectName: projectDetails.projectName,
+          clientName: projectDetails.projectName, // Using project name as client name for now
           clientEmail: 'temp@example.com', // This should be replaced with actual user email
-          building: {
-            type: projectDetails.buildingType,
-            size: projectDetails.squareFootage,
+          clientPhone: '', // Optional
+          buildingType: projectDetails.buildingType,
+          buildingSize: projectDetails.squareFootage.toString(),
+          location: {
+            address: '',
+            city: '',
+            state: '',
+            country: '',
+            zipCode: ''
+          },
+          requirements: {
             floors: projectDetails.numberOfFloors,
             zones: projectDetails.numberOfZones,
+            description: projectDetails.projectDescription,
+            squareFootage: projectDetails.squareFootage
           },
           status: 'draft',
+          messages: [],
+          history: [],
+          metadata: {}
         });
+        if (!project || !project.id) {
+          throw new Error('Failed to create project: Invalid response from server');
+        }
         setProjectId(project.id);
+        setCurrentStep(prev => prev + 1);
       } catch (error) {
         console.error('Failed to create project:', error);
+        setError(error instanceof Error ? error.message : 'Failed to create project. Please try again.');
         return;
       } finally {
         setIsSubmitting(false);
       }
+      return;
     }
-    
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
     }
@@ -79,9 +117,9 @@ const EstimationWizard: React.FC = () => {
     
     try {
       setIsSubmitting(true);
-      // Update project status to in_progress
+      // Update project status to estimation_in_progress
       await apiService.updateProject(projectId, {
-        status: 'in_progress'
+        status: 'estimation_in_progress'
       });
       router.push(`/projects/${projectId}`);
     } catch (error) {
@@ -105,6 +143,11 @@ const EstimationWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Project Overview</h2>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="form-label">Project Name</label>

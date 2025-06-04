@@ -1,14 +1,19 @@
 export interface Project {
   id: string;
+  projectName: string;
   clientName: string;
   clientEmail: string;
-  building: {
-    type: string;
-    size: number;
-    floors: number;
-    zones: number;
-  };
-  status: 'draft' | 'in_progress' | 'completed';
+  clientPhone: string;
+  buildingType: string;
+  buildingSize: string;
+  location: Record<string, any>;
+  requirements: Record<string, any>;
+  status: 'draft' | 'estimation_in_progress' | 'analyzed' | 'proposal_sent' | 'negotiation' | 'won' | 'lost';
+  estimate?: Record<string, any>;
+  proposal?: Record<string, any>;
+  messages: Array<Record<string, any>>;
+  history: Array<Record<string, any>>;
+  metadata: Record<string, any>;
   createdAt: string;
   updatedAt: string;
 }

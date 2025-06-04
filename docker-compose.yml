@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     ports:
-      - "8001:8001"
+      - "3001:3001"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -26,7 +26,7 @@ services:
     networks:
       - estimator-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,7 +38,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8001
+      - REACT_APP_API_URL=http://localhost:3001
     depends_on:
       - backend
     networks:
@@ -77,6 +77,20 @@ services:
       timeout: 5s
       retries: 5
 
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+    networks:
+      - estimator-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/shell"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -92,6 +106,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  dynamodb_data:
 
 networks:
   estimator-network:

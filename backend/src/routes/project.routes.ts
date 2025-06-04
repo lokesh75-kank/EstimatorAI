@@ -24,10 +24,15 @@ router.post('/', async (req, res) => {
   try {
     const projectData = projectSchema.parse(req.body);
     const project = await projectController.create(req, res);
+    if (!project) {
+      return res.status(500).json({ error: 'Failed to create project' });
+    }
+    res.status(201).json(project);
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else {
+      console.error('Project creation error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

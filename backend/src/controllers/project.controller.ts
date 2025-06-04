@@ -48,13 +48,14 @@ export class ProjectController {
       if (req.body.fileContent) {
         const analysis = await this.openAIService.analyzeFile(req.body.fileContent);
         await this.projectService.update(project.id, {
-        ...project,
+          ...project,
           analysis: analysis.choices[0].message.content ?? '',
         });
       }
-      res.status(201).json(project);
+      return project;
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create project' });
+      console.error('Project creation error:', error);
+      throw error;
     }
   }
 

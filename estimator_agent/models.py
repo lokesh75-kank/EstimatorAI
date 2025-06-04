@@ -83,16 +83,13 @@ class ProjectEstimate(BaseModel):
     location: ProjectLocation
     systems: List[SystemSpecification]
     cost_breakdown: CostBreakdown
+    total_cost: float
     created_at: datetime = Field(default_factory=datetime.now)
     valid_until: datetime
     notes: Optional[str] = None
     compliance_codes: List[str]
     risk_factors: List[str]
     value_engineering_suggestions: List[str]
-    
-    @property
-    def total_cost(self) -> float:
-        return self.cost_breakdown.grand_total
 
 class Proposal(BaseModel):
     project_id: str

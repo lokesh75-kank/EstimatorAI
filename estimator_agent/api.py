@@ -424,12 +424,13 @@ async def create_estimate(request: EstimateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/proposal", response_model=Proposal)
-async def create_proposal(estimate: ProjectEstimate):
+async def create_proposal(estimate: dict):
     """
     Generate a proposal based on an existing estimate.
     """
     try:
-        proposal = estimator.generate_proposal(estimate)
+        estimate_obj = ProjectEstimate(**estimate)
+        proposal = estimator.generate_proposal(estimate_obj)
         return proposal
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

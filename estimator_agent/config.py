@@ -97,10 +97,14 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = False
     log_level: str = "INFO"
+    port: int = 3001
+    next_public_api_url: str = "http://localhost:3001"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "allow"
+    }
 
 @lru_cache()
 def get_settings() -> Settings:
