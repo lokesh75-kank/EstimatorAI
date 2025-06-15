@@ -73,7 +73,7 @@ module.exports = {
 // 3. Install Tailwind + ShadCN: `npx shadcn-ui@latest init`
 // 4. Add sidebar + topbar layout in `layout.tsx`
 // 5. Implement upload + estimation logic page by page
-// 6. Use `src/types/estimation.ts` to define core entities: Project, Proposal, LineItem
+// 6. Use `frontend/types/estimation.ts` to define core entities: Project, Proposal, LineItem
 // 7. Connect to your backend endpoints from /lib/api.ts
 
 // Let me know if you want page templates, layout code, or a full working starter repo.

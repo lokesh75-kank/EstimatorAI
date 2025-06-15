@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     dynamodb_clients_table: str
     aws_ses_from_email: str
     openai_api_key: str
-    openai_model: str = "gpt-4-turbo-preview"
+    openai_model: str = "gpt-4.1-mini"
     openai_temperature: float = 0.7
     openai_max_tokens: int = 2000
     environment: str = "development"

@@ -1,15 +1,18 @@
 import boto3
 from typing import Optional
-# from ..config import AWSConfig  # Removed, as AWSConfig does not exist
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 class AWSService:
-    def __init__(self, config: dict):
-        self.config = config
+    def __init__(self):
         self.client = boto3.client(
             's3',
-            region_name=config.get('region_name'),
-            aws_access_key_id=config.get('aws_access_key_id'),
-            aws_secret_access_key=config.get('aws_secret_access_key')
+            region_name=os.getenv('AWS_REGION'),
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
         )
 
     def upload_file(self, file_path: str, bucket_name: str, object_name: str) -> bool:

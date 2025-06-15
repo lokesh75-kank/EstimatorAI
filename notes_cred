@@ -1,0 +1,11 @@
+PgAdmin (Web Interface):
+URL: http://localhost:5050
+Email: admin@admin.com
+Password: admin
+
+Direct PostgreSQL Connection:
+Host: localhost
+Port: 5432
+Database: estimator
+Username: postgres
+Password: postgres

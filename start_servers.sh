@@ -3,10 +3,12 @@
 # Set environment variables
 export NODE_ENV=development
 
+# Store the project root directory
+PROJECT_ROOT="$(dirname "$0")"
+
 # Start backend server
 echo "Starting backend server..."
-cd estimator_agent
-uvicorn api:app --host 0.0.0.0 --port 3001 --reload &
+cd "$PROJECT_ROOT/backend" && npm run dev &
 BACKEND_PID=$!
 
 # Wait for backend to start
@@ -15,8 +17,7 @@ sleep 5
 
 # Start frontend server
 echo "Starting frontend server..."
-cd ../frontend
-npm run dev &
+cd "$PROJECT_ROOT/frontend" && npm run dev &
 FRONTEND_PID=$!
 
 # Function to handle script termination
@@ -30,5 +31,6 @@ cleanup() {
 # Register the cleanup function for script termination
 trap cleanup SIGINT SIGTERM
 
-# Keep the script running
-wait 
+# Wait for both servers to exit
+wait $BACKEND_PID
+wait $FRONTEND_PID 

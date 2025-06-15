@@ -13,9 +13,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["frontend/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["frontend/**/*"],
   "exclude": ["node_modules", "dist"]
 } 

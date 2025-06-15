@@ -195,7 +195,7 @@ class ImageProcessor(DocumentProcessor):
     def __init__(self, redis_url: Optional[str] = None):
         super().__init__(redis_url)
         self.vision_model = ChatOpenAI(
-            model_name="gpt-4-vision-preview",
+            model_name="gpt-4o",
             temperature=0,
             max_tokens=2000
         )
