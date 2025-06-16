@@ -241,64 +241,62 @@ const EstimationWizard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">New Estimation</h1>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleBack}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+    <div className="space-y-6">
+      {/* Progress Steps */}
+      <div className="lg:hidden">
+        <div className="flex items-center justify-between mb-4">
+          {steps.map((step) => (
+            <div
+              key={step.id}
+              className={`flex items-center ${
+                step.id === currentStep ? 'text-blue-600' : 'text-gray-400'
+              }`}
             >
-              Back
-            </button>
-            {currentStep < steps.length ? (
-              <button
-                onClick={handleNext}
-                disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                  step.id === currentStep
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-300'
+                }`}
               >
-                {isSubmitting ? 'Processing...' : 'Next'}
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit'}
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="mt-4">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                    currentStep > step.id
-                      ? 'bg-green-500 text-white'
-                      : currentStep === step.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {currentStep > step.id ? '✓' : step.id}
-                </div>
-                <div className="ml-2 text-sm font-medium text-gray-900">{step.title}</div>
-                {index < steps.length - 1 && (
-                  <div className="w-24 h-0.5 bg-gray-200 mx-4" />
-                )}
+                {step.id}
               </div>
-            ))}
-          </div>
+              <span className="ml-2 text-sm font-medium">{step.title}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        {renderStep()}
+      {/* Main Content */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-6">
+          {renderStep()}
+        </div>
       </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center pt-4">
+        <button
+          onClick={handleBack}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          {currentStep === 1 ? 'Cancel' : 'Back'}
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {currentStep === 5 ? 'Submit' : 'Next'}
+        </button>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
     </div>
   );
 };
