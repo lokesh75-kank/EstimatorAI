@@ -1,56 +1,42 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
 
 interface ParsedFieldInputProps {
   label: string;
-  value: any;
-  onChange: (value: any) => void;
-  type?: string;
+  value?: string | number;
+  onChange: (value: string | number) => void;
+  type?: 'text' | 'number';
   placeholder?: string;
-  icon?: string;
+  isConfirmed: boolean;
   tooltip?: string;
 }
 
 const ParsedFieldInput: React.FC<ParsedFieldInputProps> = ({
   label,
-  value,
+  value = '',
   onChange,
   type = 'text',
   placeholder,
-  icon,
+  isConfirmed,
   tooltip
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
-    <div className="relative">
-      <label className="block text-sm text-gray-500 mb-1 flex items-center gap-2">
-        {icon && <span>{icon}</span>}
-        {label}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
         {tooltip && (
-          <span className="text-gray-400 cursor-help" title={tooltip}>ⓘ</span>
-        )}
-      </label>
-      <div className="relative">
-        <input
-          type={type}
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        />
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-          >
-            ✏️
-          </motion.div>
+          <span className="text-xs text-gray-500">{tooltip}</span>
         )}
       </div>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
+        placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+        disabled={isConfirmed}
+      />
     </div>
   );
 };

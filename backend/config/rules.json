@@ -1,0 +1,64 @@
+{
+  "office_building": {
+    "per_sqft": {
+      "smoke_detector": 0.00075,
+      "sprinkler_head": 0.0015,
+      "emergency_light": 0.0005
+    },
+    "per_floor": {
+      "horn_strobe": 2,
+      "fire_alarm_panel": 1,
+      "fire_extinguisher": 4
+    },
+    "min_qty": {
+      "fire_extinguisher": 4,
+      "emergency_exit_sign": 2
+    },
+    "special_features": {
+      "atrium": {
+        "smoke_detector": 0.001,
+        "sprinkler_head": 0.002
+      },
+      "underground_parking": {
+        "co_detector": 0.0005,
+        "emergency_light": 0.001
+      }
+    }
+  },
+  "residential_building": {
+    "per_sqft": {
+      "smoke_detector": 0.001,
+      "co_detector": 0.0005
+    },
+    "per_floor": {
+      "fire_extinguisher": 2,
+      "emergency_exit_sign": 1
+    },
+    "min_qty": {
+      "smoke_detector": 1,
+      "co_detector": 1
+    }
+  },
+  "industrial_facility": {
+    "per_sqft": {
+      "smoke_detector": 0.0005,
+      "sprinkler_head": 0.001,
+      "emergency_light": 0.0003
+    },
+    "per_floor": {
+      "horn_strobe": 4,
+      "fire_alarm_panel": 1,
+      "fire_extinguisher": 6
+    },
+    "min_qty": {
+      "fire_extinguisher": 6,
+      "emergency_exit_sign": 4
+    },
+    "special_features": {
+      "hazardous_materials": {
+        "co_detector": 0.001,
+        "gas_detector": 0.0005
+      }
+    }
+  }
+} 

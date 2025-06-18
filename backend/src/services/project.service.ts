@@ -1,5 +1,6 @@
 import { Project } from '../models/project.model';
 import { DynamoDB } from 'aws-sdk';
+import { config } from '../config/env';
 
 export class ProjectService {
   private dynamoDB: DynamoDB.DocumentClient;
@@ -7,10 +8,10 @@ export class ProjectService {
 
   constructor() {
     this.dynamoDB = new DynamoDB.DocumentClient({
-      region: process.env.AWS_REGION || 'us-east-1',
-      endpoint: process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000',
+      region: config.aws.region,
+      endpoint: config.aws.dynamoDB.endpoint,
     });
-    this.tableName = process.env.DYNAMODB_TABLE || 'projects';
+    this.tableName = config.aws.dynamoDB.table;
   }
 
   async getAll(): Promise<Project[]> {

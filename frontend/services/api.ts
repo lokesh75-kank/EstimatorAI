@@ -18,13 +18,11 @@ import type {
 const getApiUrl = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) {
-    console.warn('NEXT_PUBLIC_API_URL is not set, using default URL');
     return 'http://localhost:3001/api';
   }
   
   // Ensure URL ends with /api
   if (!apiUrl.endsWith('/api')) {
-    console.warn('NEXT_PUBLIC_API_URL should end with /api');
     return apiUrl.endsWith('/') ? `${apiUrl}api` : `${apiUrl}/api`;
   }
   
@@ -32,12 +30,6 @@ const getApiUrl = () => {
 };
 
 const API_BASE_URL = getApiUrl();
-
-// Debug log the API configuration
-console.log('API Configuration:', {
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-  API_BASE_URL,
-});
 
 class ApiService {
   private api: AxiosInstance;
@@ -50,20 +42,12 @@ class ApiService {
       },
     });
 
-    // Debug log the axios instance configuration
-    console.log('Axios Instance Configuration:', {
-      baseURL: this.api.defaults.baseURL,
-      headers: this.api.defaults.headers,
-    });
-
     this.setupInterceptors();
   }
 
   private setupInterceptors() {
     this.api.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        // Debug log each request
-        console.log('Making request to:', config.url, 'with baseURL:', config.baseURL);
         const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -76,13 +60,6 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error: AxiosError<ErrorResponse>) => {
-        // Debug log response errors
-        console.error('API Error:', {
-          url: error.config?.url,
-          baseURL: error.config?.baseURL,
-          status: error.response?.status,
-          data: error.response?.data,
-        });
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           window.location.href = '/login';

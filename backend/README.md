@@ -1,101 +1,114 @@
-# AI Estimator Backend
+# Estimator AI Backend
 
-This is the backend service for the AI Estimator system, handling project management, estimation generation, and AI analysis for fire alarm and security system proposals.
+This is the backend service for the Estimator AI application, which provides BOM (Bill of Materials) generation and cost estimation functionality.
 
-## Setup
+## Features
 
-1. Install dependencies:
-```bash
-npm install
-```
+- Data connector layer for multiple inventory sources (SQL, REST APIs)
+- BOM generation rules engine with AI-powered rule discovery
+- Cost estimation with equipment, labor, permits, and taxes
+- RESTful API endpoints for estimate generation and management
 
-2. Create a `.env` file in the root directory with the following variables:
-```
-# Server Configuration
-PORT=3001
-NODE_ENV=development
+## Prerequisites
 
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
+- Node.js 18 or higher
+- MySQL 8.0 or higher
+- OpenAI API key
 
-# Agent API Configuration
-AGENT_API_URL=http://localhost:8000
-AGENT_API_KEY=your_agent_api_key_here
+## Installation
 
-# File Upload Configuration
-UPLOAD_DIR=uploads
-MAX_FILE_SIZE=10485760  # 10MB in bytes
-```
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy `.env.example` to `.env` and update the configuration:
+   ```bash
+   cp .env.example .env
+   ```
+4. Update the configuration files in `config/` directory with your settings
 
-3. Build the TypeScript code:
-```bash
-npm run build
-```
+## Configuration
 
-4. Start the development server:
+The application uses several configuration files:
+
+- `rules.json`: BOM generation rules for different building types
+- `labor-rates.json`: Labor rates by ZIP code and item type
+- `permit-fees.json`: Permit fees by state and special features
+- `tax-rates.json`: Tax rates by state
+- `markup-rates.json`: Markup rates for different cost components
+- `sql-connector.json`: SQL database connection settings
+- `rest-connector.json`: REST API connection settings
+
+## Development
+
+Start the development server:
+
 ```bash
 npm run dev
 ```
 
-## Integration with Python Agent
+## Building
 
-This backend service integrates with a Python-based AI agent that handles the core estimation logic. The agent should be running on the URL specified in `AGENT_API_URL` (default: http://localhost:8000).
+Build the application:
 
-To start the Python agent:
-1. Navigate to the `estimator_agent` directory
-2. Install Python dependencies
-3. Start the FastAPI server
+```bash
+npm run build
+```
+
+## Running
+
+Start the production server:
+
+```bash
+npm start
+```
 
 ## API Endpoints
 
-### Projects
-
-- `POST /api/projects` - Create a new project
-- `GET /api/projects/:id` - Get project details
-- `GET /api/projects` - List all projects
-- `POST /api/projects/:id/files` - Upload project files
-
 ### Estimates
 
-- `POST /api/estimates` - Create a new estimate
-- `GET /api/estimates/:id` - Get estimate details
-- `GET /api/estimates/project/:projectId` - List project estimates
+- `POST /api/estimate`: Generate a new estimate
+- `GET /api/estimate/:id`: Get an estimate by ID
+- `GET /api/estimate`: List estimates
+- `GET /api/estimate/:id/export`: Export an estimate
 
-### Analysis
+## Testing
 
-- `POST /api/analysis` - Request AI analysis
-- `GET /api/analysis/:id` - Get analysis results
-- `GET /api/analysis/project/:projectId` - List project analyses
+Run tests:
 
-## Development
-
-The project uses:
-- TypeScript for type safety
-- Express.js for the web server
-- OpenAI API for AI analysis
-- Zod for request validation
-- Axios for HTTP requests to the Python agent
-
-## Project Structure
-
-```
-src/
-  ├── controllers/    # Request handlers
-  ├── services/      # Business logic
-  │   ├── agent.service.ts    # Python agent integration
-  │   ├── project.service.ts  # Project management
-  │   ├── estimate.service.ts # Estimate generation
-  │   └── analysis.service.ts # AI analysis
-  ├── routes/        # API routes
-  └── index.ts       # Application entry point
+```bash
+npm test
 ```
 
-## Environment Variables
+## Linting
 
-- `PORT`: The port number for the server (default: 3001)
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `NODE_ENV`: Environment mode (development/production)
-- `AGENT_API_URL`: URL of the Python agent API
-- `AGENT_API_KEY`: API key for the Python agent
-- `UPLOAD_DIR`: Directory for file uploads
-- `MAX_FILE_SIZE`: Maximum file size in bytes 
+Run linter:
+
+```bash
+npm run lint
+```
+
+## Formatting
+
+Format code:
+
+```bash
+npm run format
+```
+
+## Architecture
+
+The backend is built with a modular architecture:
+
+- `connectors/`: Data source adapters (SQL, REST)
+- `bom/`: BOM generation rules engine
+- `cost/`: Cost estimation module
+- `services/`: Business logic services
+- `routes/`: API route handlers
+- `middleware/`: Express middleware
+- `config/`: Configuration files
+
+## License
+
+MIT 

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import ConfidenceBadge from './components/ConfidenceBadge';
 import BuildingDetailsCard from './components/BuildingDetailsCard';
 import ExtractedTextArea from './components/ExtractedTextArea';
@@ -17,9 +18,11 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
   projectDetails,
   setProjectDetails
 }) => {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [confirmedData, setConfirmedData] = useState<Record<string, boolean>>({});
+  const [dataSourceMode, setDataSourceMode] = useState<'upload' | 'connect'>('upload');
 
   const handleConfirmData = (docId: string) => {
     setConfirmedData(prev => ({
@@ -44,6 +47,11 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
     }));
   };
 
+  const handleConnectDataSources = () => {
+    // Navigate to data sources page
+    router.push('/data-sources');
+  };
+
   const renderFileCard = (doc: ExtractedDoc) => {
     const isConfirmed = confirmedData[doc.id];
     
@@ -52,16 +60,16 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: -20, opacity: 0 }}
-        className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
       >
-        <div className="p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 min-w-0">
               <div className="text-2xl flex-shrink-0">
                 {doc.documentType?.startsWith('image') ? '🖼️' : '📄'}
               </div>
               <div className="min-w-0">
-                <div className="font-medium text-gray-900 truncate">{doc.name}</div>
+                <div className="font-semibold text-gray-900 truncate">{doc.name}</div>
                 <div className="text-sm text-gray-500 truncate">
                   Detected as: {doc.detectedType}
                 </div>
@@ -72,19 +80,19 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
 
           {doc.documentType?.startsWith('image') && (
             <motion.div
-              className="mb-4 relative aspect-video"
+              className="mb-6 relative aspect-video"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >
               <img
                 src={doc.url || ''}
                 alt={doc.name}
-                className="w-full h-full object-contain rounded-lg shadow-sm"
+                className="w-full h-full object-contain rounded-lg shadow-sm border border-gray-200"
               />
             </motion.div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Building Details */}
             <div className="bg-gray-50 rounded-lg p-4">
               <BuildingDetailsCard
@@ -95,15 +103,12 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
             </div>
 
             {/* Devices Section */}
-            {doc.extractedData.devices && doc.extractedData.devices.length > 0 && (
+            {doc?.extractedData?.devices && doc.extractedData.devices.length > 0 && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <h5 className="font-medium text-gray-900 mb-3">Detected Devices</h5>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {doc.extractedData.devices.map((device: any, index: number) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center justify-between p-2 bg-white rounded border border-gray-100"
-                    >
+                  {doc.extractedData.devices.map((device: { type: string; count: number }, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100">
                       <span className="text-sm text-gray-700 truncate">{device.type}</span>
                       <span className="text-sm font-medium text-gray-900 ml-2">{device.count} units</span>
                     </div>
@@ -116,13 +121,13 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-3">Additional Information</h5>
               <div className="space-y-3">
-                {Object.entries(doc.extractedData)
+                {Object.entries(doc?.extractedData || {})
                   .filter(([key]) => !['project_type', 'square_footage', 'floors', 'zones', 'devices'].includes(key))
                   .map(([key, value]) => (
                     <ExtractedTextArea
                       key={key}
-                      label={key.replace(/_/g, ' ').toUpperCase()}
-                      value={value as string}
+                      label={key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      value={value}
                       onChange={(newValue) => handleEditData(doc.id, key, newValue)}
                       isConfirmed={isConfirmed}
                       tooltip={`Extracted from ${doc.detectedType}`}
@@ -134,13 +139,13 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
             {/* Confirmation Button */}
             {!isConfirmed && (
               <motion.div
-                className="flex justify-end mt-4"
+                className="flex justify-end mt-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
                 <button
                   onClick={() => handleConfirmData(doc.id)}
-                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Confirm Extracted Data
                 </button>
@@ -153,20 +158,27 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+    if (!e.target.files || e.target.files.length === 0) return;
     setIsSubmitting(true);
     setError(null);
     let extractedResults: any[] = [];
+    
     try {
-      for (const file of Array.from(e.target.files)) {
-        const result = await (await import('@/services/documentService')).default.uploadDocument(file);
+      const files = Array.from(e.target.files);
+      for (const file of files) {
+        // Create a new File object to ensure we have a fresh copy
+        const fileCopy = new File([file], file.name, { type: file.type });
+        
+        // Upload and process the file
+        const result = await (await import('@/services/documentService')).default.uploadDocument(fileCopy);
         
         // Add confidence scores and detected type
         const processedResult = {
           ...result,
           confidence: result.confidence || 0,
           detectedType: result.documentType || 'Unknown',
-          status: 'parsed'
+          status: 'parsed',
+          id: Date.now().toString(), // Add a unique ID
         };
 
         // Auto-fill project details if confidence is high enough
@@ -188,10 +200,14 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
       }
       setExtractedDocs(extractedResults);
     } catch (err: any) {
+      console.error('Upload error:', err);
       setError(err.message || 'Failed to upload and extract document.');
     } finally {
       setIsSubmitting(false);
-      e.target.value = ""; // Allow re-uploading the same file
+      // Clear the input value after processing
+      if (e.target) {
+        e.target.value = "";
+      }
     }
   };
 
@@ -217,90 +233,211 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Main Upload Area */}
-      <div className={`${extractedDocs.length > 0 ? 'lg:w-3/4' : 'w-full'} p-4 lg:p-6 overflow-y-auto`}>
-        <div className="max-w-7xl mx-auto h-full flex flex-col">
-          {extractedDocs.length === 0 ? (
-            <>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Upload Documents</h2>
-              <p className="text-sm lg:text-base text-gray-600 mb-6 lg:mb-8">
-                Upload project documents to automatically extract key information.
+    <div className="space-y-6">
+      {/* Mode Selection */}
+      {extractedDocs.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="text-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Data Source</h3>
+            <p className="text-sm text-gray-600">
+              Upload documents or connect to existing data sources
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Upload Documents Option */}
+            <div 
+              className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                dataSourceMode === 'upload' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setDataSourceMode('upload')}
+            >
+              <div className="text-center">
+                <div className="text-4xl mb-3">📄</div>
+                <h4 className="font-medium text-gray-900 mb-2">Upload Documents</h4>
+                <p className="text-sm text-gray-600">
+                  Upload PDFs, images, or other project documents
+                </p>
+              </div>
+            </div>
+
+            {/* Connect Data Sources Option */}
+            <div 
+              className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                dataSourceMode === 'connect' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setDataSourceMode('connect')}
+            >
+              <div className="text-center">
+                <div className="text-4xl mb-3">🔗</div>
+                <h4 className="font-medium text-gray-900 mb-2">Connect Data Sources</h4>
+                <p className="text-sm text-gray-600">
+                  Connect to ERP, CRM, or other business systems
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Re-upload Button */}
+      {extractedDocs.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            onClick={() => {
+              setExtractedDocs([]);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+                setTimeout(() => {
+                  fileInputRef.current?.click();
+                }, 0);
+              }
+            }}
+          >
+            Re-upload Files
+          </button>
+        </div>
+      )}
+
+      {/* Upload Documents Mode */}
+      {dataSourceMode === 'upload' && extractedDocs.length === 0 && (
+        <div className="space-y-6">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept=".pdf,.doc,.docx,.zip,.png,.jpg,.jpeg"
+            onChange={handleFileChange}
+          />
+
+          <div
+            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200
+              ${isDragActive ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}`}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="space-y-4">
+              <div className="text-6xl">📄</div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+              </h3>
+              <p className="text-base text-gray-500">or click to browse files</p>
+              <p className="text-sm text-gray-400">
+                Supports: PDF, DOCX, JPG, PNG, ZIP
               </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                accept=".pdf,.doc,.docx,.zip,.png,.jpg,.jpeg"
-                onChange={handleFileChange}
-              />
+      {/* Connect Data Sources Mode */}
+      {dataSourceMode === 'connect' && extractedDocs.length === 0 && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-8">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🔗</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Connect Your Data Sources</h3>
+              <p className="text-sm text-gray-600">
+                Connect to your existing business systems to automatically import project data
+              </p>
+            </div>
 
-              <div
-                className={`border-2 border-dashed rounded-xl p-6 lg:p-12 text-center cursor-pointer transition-all duration-200
-                  ${isDragActive ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}`}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <div className="space-y-4 lg:space-y-6">
-                  <div className="text-5xl lg:text-7xl">📄</div>
-                  <h3 className="text-xl lg:text-2xl font-semibold text-gray-900">
-                    {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
-                  </h3>
-                  <p className="text-base lg:text-lg text-gray-500">or click to browse files</p>
-                  <p className="text-xs lg:text-sm text-gray-400">
-                    Supports: PDF, DOCX, JPG, PNG, ZIP
-                  </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              {/* ERP System */}
+              <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">📊</div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">ERP System</h4>
+                    <p className="text-xs text-gray-500">SAP, Oracle, etc.</p>
+                  </div>
                 </div>
               </div>
-            </>
-          ) : (
-            extractedDocs.length === 1 ? (
-              <div className="flex-1 flex flex-col justify-center">
-                {renderFileCard(extractedDocs[0])}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 auto-rows-fr">
-                <AnimatePresence>
-                  {extractedDocs.map((doc) => (
-                    <div key={doc.id} className="h-full">
-                      {renderFileCard(doc)}
-                    </div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )
-          )}
 
-          {isSubmitting && (
-            <div className="mt-6 lg:mt-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-              <p className="mt-2 text-sm lg:text-base text-gray-600">Processing documents...</p>
+              {/* CRM System */}
+              <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">👥</div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">CRM System</h4>
+                    <p className="text-xs text-gray-500">Salesforce, HubSpot, etc.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Project Management */}
+              <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">📋</div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">Project Management</h4>
+                    <p className="text-xs text-gray-500">Jira, Asana, etc.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
 
-          {error && (
-            <div className="mt-6 lg:mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm lg:text-base text-red-700">{error}</p>
+            <div className="text-center">
+              <button
+                onClick={handleConnectDataSources}
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Manage Data Sources
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                You'll be redirected to the Data Sources page
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Display Uploaded Documents */}
+      {extractedDocs.length > 0 && (
+        <div className="space-y-6">
+          {extractedDocs.length === 1 ? (
+            renderFileCard(extractedDocs[0])
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AnimatePresence>
+                {extractedDocs.map((doc) => (
+                  <div key={doc.id}>
+                    {renderFileCard(doc)}
+                  </div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Metadata Panel */}
-      {extractedDocs.length > 0 && (
-        <div className="lg:w-1/4 border-t lg:border-t-0 lg:border-l border-gray-200 bg-white overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
-            <h3 className="text-base lg:text-lg font-semibold text-gray-900">Project Summary</h3>
-          </div>
-          <div className="p-4">
-            <MetadataPanel
-              extractedDocs={extractedDocs}
-              projectDetails={projectDetails}
-            />
+      {isSubmitting && (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+          <p className="mt-3 text-sm text-gray-600">Processing documents...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
           </div>
         </div>
       )}

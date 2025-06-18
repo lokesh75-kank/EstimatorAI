@@ -1,0 +1,31 @@
+{
+  "enabled": true,
+  "type": "sql",
+  "config": {
+    "client": "mysql2",
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "password",
+    "database": "inventory",
+    "tableName": "items"
+  },
+  "field_mapping": {
+    "codeField": "item_sku",
+    "descriptionField": "description",
+    "priceField": "unit_cost",
+    "leadTimeField": "lead_time_days",
+    "quantityField": "available_quantity",
+    "categoryField": "category",
+    "lastUpdatedField": "last_updated",
+    "spec_voltage": "voltage",
+    "spec_wattage": "wattage",
+    "spec_dimensions": "dimensions"
+  },
+  "vendor_id": "vendor_a",
+  "vendor_name": "Vendor A",
+  "sync_settings": {
+    "batch_size": 1000,
+    "sync_interval": 3600
+  }
+} 

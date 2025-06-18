@@ -1,0 +1,10 @@
+{
+  "equipment": 0.15,
+  "labor": 0.25,
+  "permits": 0.1,
+  "special_features": {
+    "atrium": 0.2,
+    "underground_parking": 0.2,
+    "hazardous_materials": 0.3
+  }
+} 

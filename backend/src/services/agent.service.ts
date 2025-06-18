@@ -1,13 +1,11 @@
 import axios from 'axios';
 import { z } from 'zod';
-
-const agentApiUrl = process.env.AGENT_API_URL || 'http://localhost:8000';
-const agentApiKey = process.env.AGENT_API_KEY;
+import { config } from '../config/env';
 
 const agentClient = axios.create({
-  baseURL: agentApiUrl,
+  baseURL: config.agent.apiUrl,
   headers: {
-    'X-API-Key': agentApiKey,
+    'X-API-Key': config.agent.apiKey,
     'Content-Type': 'application/json',
   },
 });

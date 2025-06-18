@@ -1,0 +1,47 @@
+{
+  "CA": {
+    "base_fee": 500,
+    "per_sqft": 0.05,
+    "special_features": {
+      "atrium": 1000,
+      "underground_parking": 750,
+      "hazardous_materials": 2000
+    }
+  },
+  "NY": {
+    "base_fee": 750,
+    "per_sqft": 0.075,
+    "special_features": {
+      "atrium": 1500,
+      "underground_parking": 1000,
+      "hazardous_materials": 3000
+    }
+  },
+  "TX": {
+    "base_fee": 400,
+    "per_sqft": 0.04,
+    "special_features": {
+      "atrium": 800,
+      "underground_parking": 600,
+      "hazardous_materials": 1500
+    }
+  },
+  "FL": {
+    "base_fee": 450,
+    "per_sqft": 0.045,
+    "special_features": {
+      "atrium": 900,
+      "underground_parking": 675,
+      "hazardous_materials": 1800
+    }
+  },
+  "IL": {
+    "base_fee": 600,
+    "per_sqft": 0.06,
+    "special_features": {
+      "atrium": 1200,
+      "underground_parking": 900,
+      "hazardous_materials": 2400
+    }
+  }
+} 

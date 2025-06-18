@@ -1,99 +1,255 @@
-# 👣 User Journey – AI Estimator for Fire & Security Systems
+# AI Estimator - User Journey & UI/UX Flow
 
-This document outlines the end-to-end journey of a user interacting with the AI-powered Estimation Agent for fire alarm and security system proposals.
+Below is a detailed, end-to-end UI/UX flow for creating and managing estimation projects in the AI Estimator. The flow is project-centric, allowing users to organize their work better and leverage AI agents for automated estimation creation.
 
-## 🎯 Persona: Estimation Engineer / Project Manager
+## 1. Entry Point: Landing Page
+**Screen:** `/` (Landing Page)
 
-**User Type:** Fire & Security Systems Integrator (Small to Mid-size)
+**Elements:**
+- **Hero Section:** Main value proposition with "Create New Project" and "Connect Data Sources" CTAs
+- **Feature Highlights:** Cards showcasing AI estimation, data integration, cost accuracy
+- **Quick Links:** "Create New Project", "Connect Data Sources", "View Projects", "Learn More"
+- **Navigation:** Logo, "Projects", "Data Sources", "Login/Register"
 
-**Goal:** Generate accurate, fast, and compliant cost proposals with minimal manual effort.
+**Primary Actions:**
+- Click "Create New Project" → Project Creation Wizard
+- Click "Connect Data Sources" → Data Sources Dashboard
+- Click "View Projects" → Projects Dashboard
 
-## 🧭 Stage 1: Discovery & Onboarding
+## 2. Project Creation Wizard
+**Screen:** `/projects/new`
 
-### 1.1 Access
-- User lands on the web app via invite link or homepage
-- Agent shows product overview and a quick demo
+**Multi-step wizard with progress indicator:**
+1. **Project Details** → 2. **Data Sources** → 3. **Requirements** → 4. **Review & Create**
 
-### 1.2 Authentication
-- User signs up or logs in
-- Agent tailors dashboard based on role and past activity
+### Step 1: Project Details
+**Fields:**
+- Project Name (required, max 50 chars)
+- Client Name (typeahead from past clients)
+- Client Email (email validation)
+- Project Location (autocomplete with Google Places)
+- Building Type (dropdown: office, residential, industrial, etc.)
+- Square Footage (number input)
+- Number of Floors (number input)
+- Number of Zones (number input)
+- Project Description (free text, optional)
 
-### 1.3 Branding
-- Option to upload logo and company name for white-labeled proposals
-- Agent stores branding preferences
+**Actions:**
+- Next (enabled only when required fields valid)
+- Save Draft (auto-saves progress)
 
-## 📥 Stage 2: Submit Project Requirements
+**Validation & Feedback:**
+- Real-time inline errors
+- Auto-save on field blur
+- Progress indicator updates
 
-### 2.1 Start New Estimation
-- User clicks "New Estimation" on dashboard
-- Agent opens guided intake wizard
+### Step 2: Data Sources
+**Two-column layout:**
+- **Left:** List of available data connectors with status badges
+- **Right:** "Add New Source" button + connector preview
 
-### 2.2 Upload Input Files
-- RFQs, blueprints, and SOWs are uploaded
-- Agent parses documents and extracts key metadata using OpenAI
+**Data Source Types:**
+- ERP Systems (SAP, Oracle, etc.)
+- CRM Systems (Salesforce, HubSpot, etc.)
+- Inventory Management (QuickBooks, etc.)
+- Custom APIs
+- File Uploads (CSV, Excel)
 
-### 2.3 Fill Form Inputs
-- User enters building type, total square footage, number of floors, zones, etc.
-- Agent recommends missing or auto-filled fields
+**Actions:**
+- Toggle connectors to include in project
+- Add New Source → Data Source Wizard
+- Next/Back navigation
 
-### 2.4 Chat Clarification (Optional)
-- User asks questions like: "How many detectors are needed?"
-- Agent responds based on NFPA/IBC code logic
+### Step 3: Requirements
+**Document Upload & Requirements:**
+- Drag & drop file upload area
+- Supported formats: PDF, DOCX, XLSX, CSV
+- Requirements text input
+- Building specifications
+- Security requirements
+- Compliance needs
 
-## 🧮 Stage 3: Estimate Generation
+**Actions:**
+- Upload documents
+- Add requirements text
+- Next/Back navigation
 
-### 3.1 Run Estimation
-- User submits form and clicks "Estimate"
-- Agent calculates device count, labor, permits, and regional costs
+### Step 4: Review & Create
+**Summary view:**
+- Project details summary
+- Selected data sources
+- Uploaded documents
+- Requirements summary
 
-### 3.2 Review Bill of Materials
-- Output is a structured BOM with cost breakdown
-- Editable markup and profit margins
+**Actions:**
+- Back to edit any step
+- Create Project (final action)
 
-### 3.3 Compliance Flagging
-- If code issues arise (e.g., missing strobe in stairwell), agent alerts user
-- Agent provides links to applicable codes
+**Post-Creation:** Redirects to Project Dashboard
 
-## 📄 Stage 4: Proposal Generation
+## 3. Project Dashboard
+**Screen:** `/projects/[id]`
 
-### 4.1 Generate Proposal
-- User clicks "Generate Proposal"
-- Agent compiles PDF with branding, scope, BOM, legal text, etc.
+**Layout:**
+- **Header:** Project name, status badges, back navigation
+- **Left Sidebar:** Project info + Quick Actions
+- **Main Content:** Tabbed interface
 
-### 4.2 Delivery
-- User can download or directly email the proposal to client
-- Email automation uses SES or SMTP integration
+### Left Sidebar - Project Info
+**Project Details:**
+- Client information
+- Location and building specs
+- Project status and priority badges
 
-### 4.3 Store & Track
-- Proposal is saved in dashboard with status (Draft → Final)
+**Quick Actions:**
+- **"Create AI Estimation"** (primary action)
+- **"Manual Estimation"** (link to wizard)
+- **"Edit Project"** (project settings)
 
-## 📊 Stage 5: Project Management
+### Main Content - Tabbed Interface
 
-### 5.1 View Estimation History
-- List of past projects with cost, status, client info
+#### Overview Tab
+**Content:**
+- Project description
+- Key metrics cards (Data Sources, Documents, Estimations)
+- **AI Agent Section:** Prominent call-to-action with description
+- Recent activity
 
-### 5.2 Open Detailed View
-- Proposal preview, BOM by zone/floor, compliance logs
+#### Estimations Tab
+**Content:**
+- List of all project estimations
+- Status badges (Pending, Processing, Completed, Failed)
+- Estimation details (cost, BOM items, confidence)
+- **"New Estimation"** button for AI agent
 
-### 5.3 Re-Estimate
-- Triggered when vendor pricing changes or project is revised
-- Agent re-calculates with updated cost inputs
+#### Documents Tab
+**Content:**
+- Project document management
+- Upload/view/download functionality
+- Document status and metadata
 
-## ✅ Optional QA: Human-in-the-Loop
+#### Settings Tab
+**Content:**
+- Project configuration
+- Team access settings
+- Export options
 
-### Trigger Points:
-- Project exceeds $50k
-- AI compliance engine encounters ambiguous requirements
+## 4. AI Estimation Creation
+**Trigger:** "Create AI Estimation" button from Project Dashboard
 
-### Agent Behavior:
-- Escalates to human engineer for manual review
-- Sends notification or internal flag
+**Process:**
+1. **Initialization:** Shows loading state with spinner
+2. **Data Analysis:** AI analyzes project requirements, data sources, documents
+3. **Processing:** Real-time progress updates
+4. **Completion:** Results displayed with cost breakdown
 
-## 🎉 Outcome
+**AI Agent Features:**
+- Analyzes uploaded documents for requirements
+- Integrates data from connected sources
+- Applies industry-standard BOM rules
+- Calculates regional labor rates
+- Considers compliance requirements
+- Provides confidence scores
 
-- 80–90% reduction in estimation time
-- Code-compliant, accurate proposals
-- Higher RFP win rates
-- Engineers focus on design, not spreadsheets
+**Results Display:**
+- Total estimated cost
+- Detailed BOM breakdown
+- Confidence percentage
+- Assumptions and notes
+- Export options (PDF, CSV)
 
-Designed for integrators and contractors who want to win faster, safer, and smarter. 
+## 5. Manual Estimation Wizard
+**Screen:** `/estimation/new?projectId=[id]`
+
+**Alternative to AI estimation with manual control:**
+- Step 1: Project Overview
+- Step 2: Document Upload
+- Step 3: BOM Configuration
+- Step 4: Cost Review & Export
+
+## 6. Projects Dashboard
+**Screen:** `/projects`
+
+**Features:**
+- **Project List:** All user projects with status, priority, last updated
+- **Filters:** Status, priority, date range, client
+- **Search:** Project name, client, location
+- **Actions:** View project, create estimation, edit, archive
+
+**Project Cards Include:**
+- Project name and client
+- Status and priority badges
+- Last updated timestamp
+- Quick action buttons
+- Estimated vs actual cost (if available)
+
+## 7. Data Sources Management
+**Screen:** `/data-sources`
+
+**Features:**
+- **Data Source Cards:** List of all configured connectors
+- **Status Indicators:** Connected, disconnected, error states
+- **Last Sync Info:** Timestamp and record count
+- **Actions:** Edit, resync, toggle, delete
+
+**Add Source Wizard:**
+- Step 1: Choose Source Type
+- Step 2: Connection Details
+- Step 3: Field Mapping
+- Step 4: Cache & Sync Settings
+- Step 5: Review & Test
+
+## 8. Estimation Details & Export
+**Screen:** `/estimations/[id]`
+
+**Content:**
+- **Cost Breakdown:** Detailed BOM with line items
+- **Assumptions:** AI reasoning and confidence factors
+- **Compliance Check:** Code requirements and flags
+- **Export Options:** PDF proposal, CSV data, email to client
+
+## UX Details & Best Practices
+
+### **Consistency**
+- Keep "Back"/"Next" in consistent positions
+- Primary actions always on the right
+- Consistent color scheme and typography
+
+### **Progress Management**
+- Auto-save after each step
+- Show "Saved" indicators
+- Draft recovery on page reload
+
+### **Guidance & Help**
+- Contextual help icons
+- AI chat integration
+- Tooltips for complex features
+- Progressive disclosure for advanced options
+
+### **Performance**
+- Lazy-load large tables
+- Show skeleton loaders
+- Optimistic UI updates
+- Background processing for AI tasks
+
+### **Accessibility**
+- All form elements properly labeled
+- Color-contrast compliant
+- Keyboard navigation support
+- Screen reader friendly
+
+### **Mobile Responsiveness**
+- Responsive design for all screen sizes
+- Touch-friendly interface elements
+- Optimized layouts for mobile workflows
+
+## Key User Benefits
+
+1. **Project Organization:** All work organized by projects with clear status tracking
+2. **AI Integration:** Seamless AI agent integration for automated estimation
+3. **Data Connectivity:** Easy integration with existing business systems
+4. **Flexibility:** Both AI and manual estimation options
+5. **Professional Output:** Branded proposals and detailed breakdowns
+6. **Collaboration:** Team access and sharing capabilities
+
+This project-centric flow ensures users can efficiently manage multiple estimation projects while leveraging AI capabilities for faster, more accurate cost estimates. The workflow supports both automated AI estimation and manual control, providing flexibility for different use cases and user preferences.

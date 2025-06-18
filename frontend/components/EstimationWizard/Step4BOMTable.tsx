@@ -1,54 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import EstimationDashboard from '@/components/estimates/EstimationDashboard';
+import { ProjectParams } from '@/services/estimationService';
 
 interface Step4BOMTableProps {
   bomData: any[];
   setBOMData: (val: any[]) => void;
   warnings: string[];
   setWarnings: (val: string[]) => void;
+  projectDetails: any;
 }
 
-const Step4BOMTable: React.FC<Step4BOMTableProps> = ({ bomData, setBOMData, warnings, setWarnings }) => {
-  // Placeholder table
+const Step4BOMTable: React.FC<Step4BOMTableProps> = ({ 
+  bomData, 
+  setBOMData, 
+  warnings, 
+  setWarnings,
+  projectDetails 
+}) => {
+  const [projectParams, setProjectParams] = useState<ProjectParams>({
+    projectName: projectDetails.projectName || 'New Project',
+    buildingType: projectDetails.buildingType || 'office_building',
+    squareFootage: projectDetails.squareFootage || 0,
+    numberOfFloors: projectDetails.numberOfFloors || 1,
+    numberOfZones: projectDetails.numberOfZones || 1,
+    location: {
+      state: projectDetails.state,
+      zip_code: projectDetails.zipCode
+    },
+    special_features: projectDetails.specialFeatures || [],
+    overrides: {}
+  });
+
+  const handleEstimationComplete = (estimation: any) => {
+    // Update the parent component's state
+    setBOMData(estimation.bomItems);
+    setWarnings(estimation.warnings);
+  };
+
+  // Update project params when project details change
+  useEffect(() => {
+    setProjectParams({
+      projectName: projectDetails.projectName || 'New Project',
+      buildingType: projectDetails.buildingType || 'office_building',
+      squareFootage: projectDetails.squareFootage || 0,
+      numberOfFloors: projectDetails.numberOfFloors || 1,
+      numberOfZones: projectDetails.numberOfZones || 1,
+      location: {
+        state: projectDetails.state,
+        zip_code: projectDetails.zipCode
+      },
+      special_features: projectDetails.specialFeatures || [],
+      overrides: {}
+    });
+  }, [projectDetails]);
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">BOM/Compliance Review</h2>
-      <table className="min-w-full bg-white border rounded">
-        <thead>
-          <tr>
-            <th>Device</th>
-            <th>Qty</th>
-            <th>Unit Cost</th>
-            <th>Labor</th>
-            <th>Total</th>
-            <th>Margin</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bomData && bomData.length > 0 ? bomData.map((row, idx) => (
-            <tr key={idx}>
-              <td>{row.device}</td>
-              <td>{row.qty}</td>
-              <td>{row.unitCost}</td>
-              <td>{row.labor}</td>
-              <td>{row.total}</td>
-              <td>{row.margin}</td>
-              <td><button className="text-blue-600">Edit</button></td>
-            </tr>
-          )) : <tr><td colSpan={7} className="text-center text-gray-400">No BOM data</td></tr>}
-        </tbody>
-      </table>
-      {warnings && warnings.length > 0 && (
-        <div className="mt-4 bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="font-semibold mb-2">Warnings:</div>
-          <ul className="list-disc ml-6">
-            {warnings.map((w, i) => <li key={i}>{w}</li>)}
-          </ul>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">BOM/Compliance Review</h2>
+        <div className="text-sm text-gray-600">
+          Review and adjust your bill of materials
         </div>
-      )}
-      <div className="mt-4">
-        <button className="btn-secondary">Show Heatmap Overlay</button>
       </div>
+      
+      <EstimationDashboard
+        projectParams={projectParams}
+        onEstimationComplete={handleEstimationComplete}
+      />
     </div>
   );
 };

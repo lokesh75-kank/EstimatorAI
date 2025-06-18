@@ -6,6 +6,7 @@ import cors from 'cors';
 import projectRoutes from './routes/project.routes';
 import estimateRoutes from './routes/estimate.routes';
 import analysisRoutes from './routes/analysis.routes';
+import documentRoutes from './routes/document.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api/projects', projectRoutes);
 app.use('/api/estimates', estimateRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

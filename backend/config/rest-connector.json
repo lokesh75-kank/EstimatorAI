@@ -1,0 +1,32 @@
+{
+  "enabled": true,
+  "type": "rest",
+  "config": {
+    "baseUrl": "https://api.vendor-b.com/v1",
+    "timeout": 30000,
+    "healthEndpoint": "/health",
+    "inventoryEndpoint": "/inventory",
+    "auth": {
+      "type": "bearer",
+      "token": "your-api-token"
+    }
+  },
+  "field_mapping": {
+    "codeField": "sku",
+    "descriptionField": "name",
+    "priceField": "price",
+    "leadTimeField": "leadTime",
+    "quantityField": "stock",
+    "categoryField": "type",
+    "lastUpdatedField": "updatedAt",
+    "spec_voltage": "specifications.voltage",
+    "spec_wattage": "specifications.wattage",
+    "spec_dimensions": "specifications.dimensions"
+  },
+  "vendor_id": "vendor_b",
+  "vendor_name": "Vendor B",
+  "sync_settings": {
+    "batch_size": 100,
+    "sync_interval": 1800
+  }
+} 

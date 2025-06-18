@@ -1,131 +1,188 @@
-# AI-Powered Fire & Security Systems Estimator
+# Estimator AI Agent 🔥🛡️
 
-An intelligent estimation system that automates the process of generating accurate, compliant proposals for fire alarm and security systems integration.
+An AI-powered estimation system for fire & security systems that automates document processing, compliance checking, and proposal generation.
 
-## 🎯 Target Audience
-
-- Fire alarms and Security Systems Integrators (small to mid-sized)
-- General Contractors & Builders needing turnkey safety solutions
-- Facility Managers for schools, hospitals, warehouses, etc.
-- Architectural & MEP Engineering Firms
-- Government & Municipal Agencies
-
-## 💡 Core Features
-
-### 1. Intelligence Layer
-- LLM-powered understanding of customer requirements
-- NFPA, NEC, UL standards compliance
-- Automated BoM generation and system layout recommendations
-- Professional proposal generation
-
-### 2. Input Collection Engine
-- Email parser for requirements
-- Blueprint/AutoCAD parser
-- Form-based input for scope details
-- Image & floor plan recognition
-
-### 3. Cost Estimation Engine
-- Vendor pricing database
-- Automated device estimation
-- Labor and permit cost calculation
-- Dynamic profit margin management
-
-### 4. Proposal Generation Engine
-- Auto-populated templates
-- Comprehensive SOW sections
-- Customizable branding
-- Compliance documentation
-
-### 5. Deployment & Compliance
-- AWS infrastructure (GovCloud support)
-- Model validation pipeline
-- Regular compliance updates
-- SOC2 + ISO 27001 compliance
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
-- Node.js 16+
-- AWS Account
-- OpenAI API Key
+- Node.js 18+ 
+- Python 3.11+
+- npm or yarn
 
-### Quick Start
-1. Clone the repository
-2. Set up environment variables (see `docs/environment-setup.md`)
-3. Install dependencies:
+### Installation & Setup
+
+1. **Clone the repository**
    ```bash
-   # Backend
-   pip install -r requirements.txt
-   
-   # Frontend
-   cd frontend
-   npm install
+   git clone <repository-url>
+   cd Estimator_AI_agent
    ```
-4. Start the development servers:
+
+2. **Install all dependencies**
    ```bash
-   # Backend
-   uvicorn estimator_agent.api:app --reload --port 8001
-   
-   # Frontend
-   cd frontend
-   npm start
+   npm run install:all
+   ```
+
+3. **Start the development servers**
+   ```bash
+   # Start frontend only
+   npm run dev
+
+   # Or start both frontend and backend
+   npm run dev:frontend & npm run dev:backend
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
+
+## 📁 Project Structure
+
+```
+Estimator_AI_agent/
+├── frontend/                 # Next.js React frontend
+│   ├── app/                 # Next.js 13+ app directory
+│   ├── components/          # Reusable UI components
+│   ├── services/           # API services
+│   ├── types/              # TypeScript type definitions
+│   └── lib/                # Utility functions
+├── backend/                 # Node.js/Express backend
+│   ├── src/                # Source code
+│   └── config/             # Configuration files
+└── docs/                   # Documentation
+```
+
+## 🎯 Features
+
+### ✅ Working Features
+- **Document Upload & Processing** - Upload PDFs, images, and documents
+- **AI-Powered Extraction** - Automatically extract building details and device information
+- **Interactive UI Components** - Modern, responsive design with animations
+- **Project Management** - Create and manage estimation projects
+- **Data Source Integration** - Connect to external data sources
+- **Real-time Chat Interface** - AI assistant for project questions
+
+### 🔧 Recent Improvements
+- ✅ Fixed all TypeScript compilation errors
+- ✅ Cleaned up API service configuration
+- ✅ Improved component architecture
+- ✅ Added proper error handling
+- ✅ Enhanced document processing workflow
+- ✅ Streamlined build process
+
+## 🛠️ Available Scripts
+
+### Root Directory Commands
+```bash
+npm run dev              # Start frontend development server
+npm run dev:frontend     # Start frontend only
+npm run dev:backend      # Start backend only
+npm run build           # Build frontend for production
+npm run install:all     # Install all dependencies
+```
+
+### Frontend Commands (from /frontend)
+```bash
+npm run dev             # Development server
+npm run build           # Production build
+npm run start           # Start production server
+npm run lint            # Run ESLint
+```
+
+### Backend Commands (from /backend)
+```bash
+npm run dev             # Development server with hot reload
+npm run build           # Build TypeScript
+npm run start           # Start production server
+npm test                # Run tests
+```
+
+## 🏗️ Architecture
+
+### Frontend Stack
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Animations
+- **Heroicons** - Icon library
+
+### Backend Stack
+- **Node.js** - Runtime environment
+- **Express** - Web framework
+- **TypeScript** - Type safety
+- **OpenAI API** - AI processing
+- **AWS Services** - Cloud integration
+
+## 🔄 User Journey
+
+1. **Project Creation** - Start with basic project details
+2. **Document Upload** - Upload architectural plans, specifications
+3. **AI Processing** - Automatic extraction of building data and device requirements
+4. **Review & Edit** - Verify and modify extracted information
+5. **BOM Generation** - Generate bill of materials with compliance checking
+6. **Proposal Creation** - Create professional proposals with pricing
+
+## 🚦 Current Status
+
+### ✅ Completed
+- Frontend build system working
+- Component architecture established
+- API services configured
+- Document upload workflow
+- Project management interface
+
+### 🔄 In Progress
+- Backend API endpoints
+- AI processing pipeline
+- Database integration
+
+### 📋 Planned
+- Advanced compliance checking
+- Automated pricing
+- PDF proposal generation
+- Email integration
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **"npm run dev" not found**
+   ```bash
+   # Make sure you're in the right directory
+   cd frontend && npm run dev
+   # Or use the root command
+   npm run dev
+   ```
+
+2. **Module not found errors**
+   ```bash
+   # Reinstall dependencies
+   npm run install:all
+   ```
+
+3. **Build errors**
+   ```bash
+   # Clean and rebuild
+   cd frontend && rm -rf .next && npm run build
    ```
 
 ## 📚 Documentation
 
-- [Development Setup](docs/development-setup.md)
-- [Environment Configuration](docs/environment-setup.md)
-- [API Documentation](docs/api-documentation.md)
-
-## 🔐 Security
-
-- All API keys stored in AWS Secrets Manager
-- SOC2 + ISO 27001 compliance
-- Regular security audits
-- Data encryption at rest and in transit
+- [Frontend README](./frontend/README.md) - Detailed frontend documentation
+- [Backend README](./backend/README.md) - Backend API documentation
+- [User Journey](./README_USER_JOURNEY.md) - Complete user workflow
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and build
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🛠️ Development Best Practices
+---
 
-### Version Control
-- Use Git religiously — commit after each working section
-- Don't trust built-in revert functions yet
-- If AI gets stuck in loops, git reset --hard and start fresh
-
-### Testing Strategy
-- Write high-level integration tests that simulate user clicking through the app
-- Avoid low-level unit tests — focus on end-to-end functionality
-- Implement tests before moving to the next feature
-- Use tests as guardrails for safe refactoring
-
-### Debugging
-- Copy-paste error messages directly into the LLM
-- Ask AI to think through 3-4 possible causes before coding
-- Reset after each failed attempt — don't accumulate "layers of crap"
-- Add extensive logging when debugging complex issues
-- If one model fails repeatedly, switch to a different LLM
-
-### Advanced Configuration
-- Write detailed instructions files (some founders write 100+ lines)
-- Download API docs locally instead of pointing to web docs
-- Use screenshots to show UI bugs or design inspiration
-- Try voice input tools like Aqua for 2x faster prompting
-
-### Architecture Best Practices
-- Keep files small and modular — easier for both humans and LLMs
-- Choose mature frameworks with lots of training data (Rails > Rust/Elixir)
-- Build complex features as standalone projects first, then integrate
-- Use service-based architecture with clear API boundaries
-- Test complex functionality in isolation before adding to main codebase 
+**Ready to start estimating? Run `npm run dev` and visit http://localhost:3000** 🚀 

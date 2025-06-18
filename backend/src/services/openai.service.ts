@@ -1,18 +1,19 @@
 import { OpenAI } from 'openai';
+import { config } from '../config/env';
 
 export class OpenAIService {
   private openai: OpenAI;
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: config.openai.apiKey,
     });
   }
 
   async analyzeFile(fileContent: string) {
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: config.openai.model,
         messages: [
           {
             role: 'system',
@@ -23,6 +24,8 @@ export class OpenAIService {
             content: fileContent,
           },
         ],
+        max_tokens: config.openai.maxTokens,
+        temperature: config.openai.temperature,
       });
 
       return response;
