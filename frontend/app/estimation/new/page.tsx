@@ -15,7 +15,7 @@ export default function NewEstimationPage() {
                 <p className="mt-1 text-sm text-gray-600">
                   Create a new fire & security system estimation
                 </p>
-              </div>
+                  </div>
               <div className="flex items-center space-x-3">
                 <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   Save Draft
@@ -97,14 +97,14 @@ export default function NewEstimationPage() {
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">AI Confidence</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Document Analysis</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Document Analysis</span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       High
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Auto-fill Accuracy</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Auto-fill Accuracy</span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       Medium
                     </span>
@@ -115,13 +115,13 @@ export default function NewEstimationPage() {
               {/* Quick Actions */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
-                <div className="space-y-2">
+                  <div className="space-y-2">
                   <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    Save as Draft
-                  </button>
+                      Save as Draft
+                    </button>
                   <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    Export Summary
-                  </button>
+                      Export Summary
+                    </button>
                   <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                     Share Project
                   </button>

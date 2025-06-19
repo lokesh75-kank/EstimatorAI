@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { IconButton } from '@/components/common/IconButton';
 import { PencilIcon, ArrowPathIcon, PowerIcon } from '@heroicons/react/24/outline';
-import type { DataSource } from '@/types/data-source';
+import type { DataSource } from '@/types/dataSources';
 
 interface SourceCardProps {
   source: DataSource;

@@ -17,6 +17,14 @@ interface Project {
   updatedAt: string;
   estimatedCost?: number;
   actualCost?: number;
+  estimationStatus?: 'not_started' | 'in_progress' | 'completed' | 'failed';
+  uploadedFiles?: Array<{
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+  }>;
 }
 
 const ProjectsPage: React.FC = () => {
@@ -24,6 +32,24 @@ const ProjectsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'in_progress' | 'completed'>('all');
+  const [estimatingProject, setEstimatingProject] = useState<string | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // Check for success message from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      setShowSuccessMessage(true);
+      // Remove the success parameter from URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
+    }
+  }, []);
 
   // Mock data for demonstration
   useEffect(() => {
@@ -40,7 +66,12 @@ const ProjectsPage: React.FC = () => {
         priority: 'high',
         createdAt: '2024-01-15',
         updatedAt: '2024-01-20',
-        estimatedCost: 125000
+        estimatedCost: 125000,
+        estimationStatus: 'completed',
+        uploadedFiles: [
+          { id: '1', name: 'floor_plans.pdf', size: 2048576, type: 'application/pdf', url: '/uploads/floor_plans.pdf' },
+          { id: '2', name: 'specifications.docx', size: 1048576, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '/uploads/specifications.docx' }
+        ]
       },
       {
         id: '2',
@@ -53,7 +84,11 @@ const ProjectsPage: React.FC = () => {
         status: 'draft',
         priority: 'medium',
         createdAt: '2024-01-18',
-        updatedAt: '2024-01-18'
+        updatedAt: '2024-01-18',
+        estimationStatus: 'not_started',
+        uploadedFiles: [
+          { id: '3', name: 'building_specs.pdf', size: 3145728, type: 'application/pdf', url: '/uploads/building_specs.pdf' }
+        ]
       },
       {
         id: '3',
@@ -68,7 +103,12 @@ const ProjectsPage: React.FC = () => {
         createdAt: '2024-01-10',
         updatedAt: '2024-01-25',
         estimatedCost: 250000,
-        actualCost: 245000
+        actualCost: 245000,
+        estimationStatus: 'completed',
+        uploadedFiles: [
+          { id: '4', name: 'warehouse_layout.pdf', size: 4194304, type: 'application/pdf', url: '/uploads/warehouse_layout.pdf' },
+          { id: '5', name: 'fire_safety_requirements.docx', size: 2097152, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '/uploads/fire_safety_requirements.docx' }
+        ]
       }
     ];
 
@@ -109,6 +149,81 @@ const ProjectsPage: React.FC = () => {
     );
   };
 
+  const getEstimationStatusBadge = (status: Project['estimationStatus']) => {
+    if (!status) return null;
+    
+    const statusConfig = {
+      not_started: { color: 'bg-gray-100 text-gray-800', label: 'No Estimation', icon: '🤖' },
+      in_progress: { color: 'bg-blue-100 text-blue-800', label: 'AI Estimating', icon: '⚡' },
+      completed: { color: 'bg-green-100 text-green-800', label: 'Estimation Complete', icon: '✅' },
+      failed: { color: 'bg-red-100 text-red-800', label: 'Estimation Failed', icon: '❌' }
+    };
+
+    const config = statusConfig[status];
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+        <span className="mr-1">{config.icon}</span>
+        {config.label}
+      </span>
+    );
+  };
+
+  const handleAIEstimation = async (projectId: string) => {
+    setEstimatingProject(projectId);
+    
+    try {
+      // Simulate AI estimation process
+      console.log(`Starting AI estimation for project ${projectId}`);
+      
+      // In a real implementation, this would call your AI estimation API
+      const response = await fetch('/api/estimations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId,
+          action: 'start_estimation'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start AI estimation');
+      }
+
+      // Update project status to in_progress
+      setProjects(prev => prev.map(project => 
+        project.id === projectId 
+          ? { ...project, status: 'in_progress', estimationStatus: 'in_progress' }
+          : project
+      ));
+
+      // Simulate estimation completion after 3 seconds
+      setTimeout(() => {
+        setProjects(prev => prev.map(project => 
+          project.id === projectId 
+            ? { 
+                ...project, 
+                status: 'in_progress', 
+                estimationStatus: 'completed',
+                estimatedCost: Math.floor(Math.random() * 200000) + 50000 // Random cost between 50k-250k
+              }
+            : project
+        ));
+        setEstimatingProject(null);
+      }, 3000);
+
+    } catch (error) {
+      console.error('AI estimation error:', error);
+      setProjects(prev => prev.map(project => 
+        project.id === projectId 
+          ? { ...project, estimationStatus: 'failed' }
+          : project
+      ));
+      setEstimatingProject(null);
+    }
+  };
+
   const filteredProjects = projects.filter(project => 
     filter === 'all' ? true : project.status === filter
   );
@@ -147,6 +262,36 @@ const ProjectsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="bg-green-50 border-b border-green-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">
+                  Project created successfully! You can now start AI cost estimation.
+                </p>
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  onClick={() => setShowSuccessMessage(false)}
+                  className="inline-flex text-green-400 hover:text-green-600"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -252,6 +397,14 @@ const ProjectsPage: React.FC = () => {
                       </svg>
                       {project.projectLocation}
                     </div>
+                    {project.uploadedFiles && project.uploadedFiles.length > 0 && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {project.uploadedFiles.length} document{project.uploadedFiles.length !== 1 ? 's' : ''} uploaded
+                      </div>
+                    )}
                   </div>
 
                   {/* Cost Information */}
@@ -274,21 +427,61 @@ const ProjectsPage: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Estimation Status */}
+                  {getEstimationStatusBadge(project.estimationStatus)}
+
                   {/* Actions */}
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-2 mt-4">
                     <Link
                       href={`/projects/${project.id}`}
-                      className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-center"
+                      className="w-full px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-center"
                     >
                       View Details
                     </Link>
-                    {project.status === 'draft' && (
-                      <Link
-                        href={`/estimation/new?projectId=${project.id}`}
-                        className="flex-1 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors text-center"
+                    
+                    {/* AI Estimation Button */}
+                    {project.estimationStatus === 'not_started' && project.uploadedFiles && project.uploadedFiles.length > 0 && (
+                      <button
+                        onClick={() => handleAIEstimation(project.id)}
+                        disabled={estimatingProject === project.id}
+                        className="w-full px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                       >
-                        Start Estimation
+                        {estimatingProject === project.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                            AI Estimating...
+                          </>
+                        ) : (
+                          <>
+                            🤖 Start AI Estimation
+                          </>
+                        )}
+                      </button>
+                    )}
+                    
+                    {project.estimationStatus === 'in_progress' && (
+                      <div className="w-full px-3 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-lg flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                        AI Processing...
+                      </div>
+                    )}
+                    
+                    {project.estimationStatus === 'completed' && (
+                      <Link
+                        href={`/estimates/${project.id}`}
+                        className="w-full px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors text-center"
+                      >
+                        View Estimate
                       </Link>
+                    )}
+                    
+                    {project.estimationStatus === 'failed' && (
+                      <button
+                        onClick={() => handleAIEstimation(project.id)}
+                        className="w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        Retry AI Estimation
+                      </button>
                     )}
                   </div>
                 </div>

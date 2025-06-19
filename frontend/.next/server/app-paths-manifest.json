@@ -1,0 +1,7 @@
+{
+  "/projects/page": "app/projects/page.js",
+  "/projects/new/page": "app/projects/new/page.js",
+  "/projects/[id]/page": "app/projects/[id]/page.js",
+  "/api/project-session/[sessionId]/route": "app/api/project-session/[sessionId]/route.js",
+  "/api/project-session/route": "app/api/project-session/route.js"
+}

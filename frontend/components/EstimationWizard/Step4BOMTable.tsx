@@ -57,7 +57,7 @@ const Step4BOMTable: React.FC<Step4BOMTableProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">BOM/Compliance Review</h2>
+      <h2 className="text-2xl font-bold text-gray-900">BOM/Compliance Review</h2>
         <div className="text-sm text-gray-600">
           Review and adjust your bill of materials
         </div>

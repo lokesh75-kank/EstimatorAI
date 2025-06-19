@@ -3,13 +3,18 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
-const SUPPORTED_TEXT_TYPES = [
+const SUPPORTED_DOCUMENT_TYPES = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'text/plain',
+];
+const SUPPORTED_ARCHIVE_TYPES = [
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/octet-stream', // Some ZIP files might have this type
 ];
 
 export async function POST(request: NextRequest) {
@@ -34,6 +39,33 @@ export async function POST(request: NextRequest) {
       size: file.size
     });
 
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      console.error('File too large:', file.size);
+      return NextResponse.json(
+        { error: `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB` },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type
+    const fileType = file.type.toLowerCase();
+    const isImage = SUPPORTED_IMAGE_TYPES.includes(fileType);
+    const isDocument = SUPPORTED_DOCUMENT_TYPES.includes(fileType);
+    const isArchive = SUPPORTED_ARCHIVE_TYPES.includes(fileType) || file.name.toLowerCase().endsWith('.zip');
+    
+    if (!isImage && !isDocument && !isArchive) {
+      console.error('Unsupported file type:', fileType);
+      return NextResponse.json(
+        { 
+          error: 'Unsupported file type',
+          details: `Supported types: PDF, DOCX, JPG, PNG, ZIP. Received: ${fileType}`,
+          supportedTypes: [...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_DOCUMENT_TYPES, ...SUPPORTED_ARCHIVE_TYPES]
+        },
+        { status: 400 }
+      );
+    }
+
     // Create uploads directory if it doesn't exist
     const uploadDir = join(process.cwd(), 'uploads');
     console.log('Upload directory path:', uploadDir);
@@ -51,117 +83,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save file temporarily
+    // Generate unique filename to prevent conflicts
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 15);
+    const fileExtension = file.name.split('.').pop();
+    const uniqueFilename = `${timestamp}-${randomSuffix}.${fileExtension}`;
+    
+    // Save file to local storage
     const buffer = Buffer.from(await file.arrayBuffer());
-    const tempPath = join(uploadDir, file.name);
-    console.log('Saving file to:', tempPath);
-    await writeFile(tempPath, buffer);
-
-    // Check file type
-    const fileType = file.type.toLowerCase();
-    if (!SUPPORTED_IMAGE_TYPES.includes(fileType) && !SUPPORTED_TEXT_TYPES.includes(fileType)) {
-      console.error('Unsupported file type:', fileType);
-      return NextResponse.json(
-        { error: 'Unsupported file type' },
-        { status: 400 }
-      );
-    }
-
-    // Check file size
-    if (file.size > MAX_IMAGE_SIZE) {
-      console.error('File too large:', file.size);
-      return NextResponse.json(
-        { error: 'File too large' },
-        { status: 400 }
-      );
-    }
-
-    // Send file to backend for processing
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    const apiKey = process.env.NEXT_PUBLIC_AGENT_API_KEY;
-
-    if (!backendUrl) {
-      console.error('Backend URL not configured');
-      return NextResponse.json(
-        { error: 'Backend URL not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (!apiKey) {
-      console.error('API key not configured');
-      return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    const fullUrl = `${backendUrl}/api/documents/api/documents/process`;
-    console.log('Backend URL:', backendUrl);
-    console.log('Full request URL:', fullUrl);
-
+    const filePath = join(uploadDir, uniqueFilename);
+    console.log('Saving file to:', filePath);
+    
     try {
-      // Create a new FormData instance for the backend request
-      const backendFormData = new FormData();
-      // Create a new Blob with the original file type
-      const fileBlob = new Blob([buffer], { type: file.type });
-      backendFormData.append('file', fileBlob, file.name);
-
-      const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: backendFormData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Backend error response:', errorText);
-        
-        // Try to parse the error message if it's JSON
-        let errorMessage = 'Failed to process document';
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.error || errorJson.message || errorMessage;
-        } catch (e) {
-          // If not JSON, extract the error message from HTML if present
-          const errorMatch = errorText.match(/<pre>([^<]+)<\/pre>/);
-          if (errorMatch) {
-            errorMessage = errorMatch[1].trim();
-          }
-        }
-        
-        throw new Error(`Document processing failed: ${errorMessage}`);
-      }
-
-      const result = await response.json();
-      console.log('Backend processing result:', result);
-
-      return NextResponse.json(result);
-    } catch (error) {
-      console.error('Error sending file to backend:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      await writeFile(filePath, buffer);
+      console.log('File saved successfully');
+    } catch (writeError) {
+      console.error('Error writing file:', writeError);
       return NextResponse.json(
-        { 
-          error: 'Failed to process document',
-          details: errorMessage,
-          fileInfo: {
-            name: file.name,
-            type: file.type,
-            size: file.size
-          }
-        },
+        { error: 'Failed to save file', details: writeError instanceof Error ? writeError.message : 'Unknown error' },
         { status: 500 }
       );
     }
+
+    // Prepare response data
+    const fileInfo = {
+      originalName: file.name,
+      storedName: uniqueFilename,
+      size: file.size,
+      type: file.type,
+      fileUrl: `/uploads/${uniqueFilename}`, // URL for local file access
+      localPath: filePath,
+      uploadedAt: new Date().toISOString()
+    };
+
+    console.log('File upload successful:', fileInfo);
+
+    // For development, we'll return the file info directly
+    // In production, you might want to send this to a backend service for processing
+    const response = {
+      success: true,
+      message: 'File uploaded successfully',
+      file: fileInfo,
+      processingStatus: 'pending', // Files will be processed asynchronously
+      estimatedProcessingTime: '2-5 minutes'
+    };
+
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error('Error in document upload:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to process document',
-        details: error?.message || 'Unknown error'
+        error: 'Failed to upload file',
+        details: error?.message || 'Unknown error',
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );

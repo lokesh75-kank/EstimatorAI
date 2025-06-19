@@ -40,7 +40,7 @@ const ProjectDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
-  
+
   const [project, setProject] = useState<Project | null>(null);
   const [estimations, setEstimations] = useState<Estimation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -209,7 +209,7 @@ const ProjectDetailPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -267,19 +267,19 @@ const ProjectDetailPage: React.FC = () => {
                 <div>
                   <span className="text-sm font-medium text-gray-700">Zones</span>
                   <p className="text-sm text-gray-900">{project.numberOfZones}</p>
-                </div>
               </div>
+            </div>
 
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
                 <div className="space-y-2">
-                  <button
+                <button
                     onClick={handleCreateEstimation}
                     disabled={isCreatingEstimation}
                     className="w-full px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                >
                     {isCreatingEstimation ? 'Creating...' : 'Create AI Estimation'}
-                  </button>
+                </button>
                   <Link
                     href={`/estimation/new?projectId=${project.id}`}
                     className="block w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
@@ -295,7 +295,7 @@ const ProjectDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+                  </div>
 
           {/* Main Content Area */}
           <div className="flex-1">
@@ -376,7 +376,7 @@ const ProjectDetailPage: React.FC = () => {
                           <p className="text-gray-700 mb-4">
                             Our AI agent can automatically analyze your project requirements and create detailed cost estimates with BOM breakdowns.
                           </p>
-                          <button
+                    <button
                             onClick={handleCreateEstimation}
                             disabled={isCreatingEstimation}
                             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
@@ -392,16 +392,16 @@ const ProjectDetailPage: React.FC = () => {
                             ) : (
                               'Create AI Estimation'
                             )}
-                          </button>
+                    </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+              )}
 
                 {activeTab === 'estimations' && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-gray-900">Project Estimations</h3>
                       <button
                         onClick={handleCreateEstimation}
@@ -466,8 +466,8 @@ const ProjectDetailPage: React.FC = () => {
                                   <span className="text-sm font-medium text-gray-700">Confidence:</span>
                                   <p className="text-lg font-semibold text-gray-900">
                                     {estimation.confidence}%
-                                  </p>
-                                </div>
+                            </p>
+                          </div>
                               </div>
                             )}
 
@@ -516,10 +516,10 @@ const ProjectDetailPage: React.FC = () => {
                               <button className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors">
                                 Download
                               </button>
-                            </div>
+                        </div>
                           </div>
                         ))}
-                      </div>
+                        </div>
                     ) : (
                       <div className="text-center py-12">
                         <div className="text-6xl mb-4">📄</div>

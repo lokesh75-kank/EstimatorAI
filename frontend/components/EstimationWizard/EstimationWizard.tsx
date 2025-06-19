@@ -273,13 +273,13 @@ const EstimationWizard: React.FC = () => {
             >
               {currentStep === 5 ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
             </button>
-          </div>
+            </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="space-y-6">
-        {renderStep()}
+          {renderStep()}
       </div>
 
       {/* Error Display */}

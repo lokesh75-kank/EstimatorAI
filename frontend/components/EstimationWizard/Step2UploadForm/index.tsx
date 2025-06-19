@@ -284,56 +284,56 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
         </div>
       )}
 
-      {/* Re-upload Button */}
-      {extractedDocs.length > 0 && (
+          {/* Re-upload Button */}
+          {extractedDocs.length > 0 && (
         <div className="flex justify-end">
-          <button
-            type="button"
+              <button
+                type="button"
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-            onClick={() => {
-              setExtractedDocs([]);
-              if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-                setTimeout(() => {
-                  fileInputRef.current?.click();
-                }, 0);
-              }
-            }}
-          >
+                onClick={() => {
+                  setExtractedDocs([]);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                    setTimeout(() => {
+                      fileInputRef.current?.click();
+                    }, 0);
+                  }
+                }}
+              >
             Re-upload Files
-          </button>
-        </div>
-      )}
+              </button>
+            </div>
+          )}
 
       {/* Upload Documents Mode */}
       {dataSourceMode === 'upload' && extractedDocs.length === 0 && (
         <div className="space-y-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            accept=".pdf,.doc,.docx,.zip,.png,.jpg,.jpeg"
-            onChange={handleFileChange}
-          />
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".pdf,.doc,.docx,.zip,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+              />
 
-          <div
+              <div
             className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200
-              ${isDragActive ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}`}
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
+                  ${isDragActive ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
             <div className="space-y-4">
               <div className="text-6xl">📄</div>
               <h3 className="text-xl font-semibold text-gray-900">
-                {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
-              </h3>
+                    {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+                  </h3>
               <p className="text-base text-gray-500">or click to browse files</p>
               <p className="text-sm text-gray-400">
-                Supports: PDF, DOCX, JPG, PNG, ZIP
-              </p>
+                    Supports: PDF, DOCX, JPG, PNG, ZIP
+                  </p>
             </div>
           </div>
         </div>
@@ -408,26 +408,26 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
             renderFileCard(extractedDocs[0])
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AnimatePresence>
-                {extractedDocs.map((doc) => (
+                <AnimatePresence>
+                  {extractedDocs.map((doc) => (
                   <div key={doc.id}>
-                    {renderFileCard(doc)}
-                  </div>
-                ))}
-              </AnimatePresence>
-            </div>
+                      {renderFileCard(doc)}
+                    </div>
+                  ))}
+                </AnimatePresence>
+              </div>
           )}
         </div>
-      )}
+          )}
 
-      {isSubmitting && (
+          {isSubmitting && (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
           <p className="mt-3 text-sm text-gray-600">Processing documents...</p>
-        </div>
-      )}
+            </div>
+          )}
 
-      {error && (
+          {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -437,7 +437,7 @@ const Step2UploadForm: React.FC<Step2UploadFormProps> = ({
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">{error}</p>
-            </div>
+          </div>
           </div>
         </div>
       )}
