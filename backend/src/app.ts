@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
 import { createEstimateRouter } from './routes/estimate';
+import documentRoutes from './routes/document.routes';
+import projectRoutes from './routes/project.routes';
 import { RulesEngine } from './bom/RulesEngine';
 import { CostEstimator } from './cost/CostEstimator';
 import { EstimationService } from './services/EstimationService';
@@ -55,6 +57,13 @@ app.use(express.json());
 
 // Routes
 app.use('/api/estimate', createEstimateRouter(estimationService));
+app.use('/api/projects', projectRoutes);
+app.use('/', documentRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

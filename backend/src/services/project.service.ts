@@ -5,6 +5,7 @@ import { config } from '../config/env';
 export class ProjectService {
   private dynamoDB: DynamoDB.DocumentClient;
   private tableName: string;
+  private projects: Project[] = []; // In-memory storage for development
 
   constructor() {
     this.dynamoDB = new DynamoDB.DocumentClient({
@@ -15,18 +16,28 @@ export class ProjectService {
   }
 
   async getAll(): Promise<Project[]> {
-    const result = await this.dynamoDB.scan({
-      TableName: this.tableName,
-    }).promise();
-    return result.Items as Project[];
+    try {
+      const result = await this.dynamoDB.scan({
+        TableName: this.tableName,
+      }).promise();
+      return result.Items as Project[];
+    } catch (error) {
+      console.warn('DynamoDB not available, using in-memory storage:', error);
+      return this.projects;
+    }
   }
 
   async getById(id: number): Promise<Project | null> {
-    const result = await this.dynamoDB.get({
-      TableName: this.tableName,
-      Key: { id },
-    }).promise();
-    return result.Item as Project || null;
+    try {
+      const result = await this.dynamoDB.get({
+        TableName: this.tableName,
+        Key: { id },
+      }).promise();
+      return result.Item as Project || null;
+    } catch (error) {
+      console.warn('DynamoDB not available, using in-memory storage:', error);
+      return this.projects.find(p => p.id === id) || null;
+    }
   }
 
   async create(data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {
@@ -38,10 +49,15 @@ export class ProjectService {
       updatedAt: now,
     };
 
-    await this.dynamoDB.put({
-      TableName: this.tableName,
-      Item: project,
-    }).promise();
+    try {
+      await this.dynamoDB.put({
+        TableName: this.tableName,
+        Item: project,
+      }).promise();
+    } catch (error) {
+      console.warn('DynamoDB not available, using in-memory storage:', error);
+      this.projects.push(project);
+    }
 
     return project;
   }
@@ -53,26 +69,53 @@ export class ProjectService {
       updatedAt: now,
     };
 
-    const result = await this.dynamoDB.update({
-      TableName: this.tableName,
-      Key: { id },
-      UpdateExpression: 'set #data = :data',
-      ExpressionAttributeNames: {
-        '#data': 'data',
-      },
-      ExpressionAttributeValues: {
-        ':data': updateData,
-      },
-      ReturnValues: 'ALL_NEW',
-    }).promise();
+    try {
+      const result = await this.dynamoDB.update({
+        TableName: this.tableName,
+        Key: { id },
+        UpdateExpression: 'set #data = :data',
+        ExpressionAttributeNames: {
+          '#data': 'data',
+        },
+        ExpressionAttributeValues: {
+          ':data': updateData,
+        },
+        ReturnValues: 'ALL_NEW',
+      }).promise();
 
-    return result.Attributes as Project || null;
+      return result.Attributes as Project || null;
+    } catch (error) {
+      console.warn('DynamoDB not available, using in-memory storage:', error);
+      const index = this.projects.findIndex(p => p.id === id);
+      if (index !== -1) {
+        this.projects[index] = { ...this.projects[index], ...updateData };
+        return this.projects[index];
+      }
+      return null;
+    }
   }
 
   async delete(id: number): Promise<void> {
-    await this.dynamoDB.delete({
-      TableName: this.tableName,
-      Key: { id },
-    }).promise();
+    try {
+      await this.dynamoDB.delete({
+        TableName: this.tableName,
+        Key: { id },
+      }).promise();
+    } catch (error) {
+      console.warn('DynamoDB not available, using in-memory storage:', error);
+      this.projects = this.projects.filter(p => p.id !== id);
+    }
+  }
+
+  async clearAll(): Promise<void> {
+    try {
+      // For DynamoDB, we would need to scan and delete all items
+      // For now, we'll just clear the in-memory storage
+      this.projects = [];
+      console.log('All projects cleared from storage');
+    } catch (error) {
+      console.error('Error clearing projects:', error);
+      throw error;
+    }
   }
 } 

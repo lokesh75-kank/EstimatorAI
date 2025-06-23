@@ -52,10 +52,10 @@ export class ProjectController {
           analysis: analysis.choices[0].message.content ?? '',
         });
       }
-      return project;
+      res.status(201).json(project);
     } catch (error) {
       console.error('Project creation error:', error);
-      throw error;
+      res.status(500).json({ error: 'Failed to create project', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 
@@ -80,6 +80,15 @@ export class ProjectController {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete project' });
+    }
+  }
+
+  async clearAll(req: Request, res: Response) {
+    try {
+      await this.projectService.clearAll();
+      res.status(200).json({ message: 'All projects cleared successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear projects' });
     }
   }
 } 

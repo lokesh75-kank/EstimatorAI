@@ -9,13 +9,13 @@ const projectController = new ProjectController();
 
 // Project creation schema
 const projectSchema = z.object({
-  clientName: z.string(),
-  clientEmail: z.string().email(),
+  clientName: z.string().min(1, "Client name is required"),
+  clientEmail: z.string().email().optional().or(z.literal("")),
   building: z.object({
-    type: z.string(),
-    size: z.number().positive(),
-  floors: z.number().int().positive(),
-  zones: z.number().int().positive(),
+    type: z.string().min(1, "Building type is required"),
+    size: z.number().positive("Square footage must be positive"),
+    floors: z.number().int().positive("Number of floors must be positive"),
+    zones: z.number().int().positive("Number of zones must be positive"),
   }),
 });
 
@@ -24,10 +24,7 @@ router.post('/', async (req, res) => {
   try {
     const projectData = projectSchema.parse(req.body);
     const project = await projectController.create(req, res);
-    if (!project) {
-      return res.status(500).json({ error: 'Failed to create project' });
-    }
-    res.status(201).json(project);
+    // The controller should handle the response, so we don't need to return anything here
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
@@ -66,6 +63,15 @@ router.get('/', async (req, res) => {
     await projectController.getAll(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching projects' });
+  }
+});
+
+// Clear all projects (for development/testing)
+router.delete('/', async (req, res) => {
+  try {
+    await projectController.clearAll(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Error clearing projects' });
   }
 });
 

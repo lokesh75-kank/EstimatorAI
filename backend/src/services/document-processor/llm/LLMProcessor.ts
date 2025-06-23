@@ -134,13 +134,80 @@ Focus on extracting:
 
     private parseResponse(response: string): ProcessedChunk {
         try {
-            // Try to parse the response as JSON
-            const parsed = JSON.parse(response);
-            return parsed.extracted_fields || {};
+            // First, try to find JSON in code blocks
+            const jsonBlockMatch = response.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+            if (jsonBlockMatch) {
+                try {
+                    const parsed = JSON.parse(jsonBlockMatch[1].trim());
+                    return parsed.extracted_fields || parsed;
+                } catch (e) {
+                    logger.warn('Failed to parse JSON from code block, trying other methods');
+                }
+            }
+
+            // Try to find JSON object in the response
+            const jsonObjectMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonObjectMatch) {
+                try {
+                    const parsed = JSON.parse(jsonObjectMatch[0]);
+                    return parsed.extracted_fields || parsed;
+                } catch (e) {
+                    logger.warn('Failed to parse JSON object, trying other methods');
+                }
+            }
+
+            // Try to extract key-value pairs from text
+            const extractedData: ProcessedChunk = {};
+            
+            // Look for common patterns
+            const patterns = [
+                /project[:\s]+([^\n]+)/i,
+                /vendor[:\s]+([^\n]+)/i,
+                /timeline[:\s]+([^\n]+)/i,
+                /budget[:\s]+([^\n]+)/i,
+                /cost[:\s]+([^\n]+)/i,
+                /requirements?[:\s]+([^\n]+)/i,
+                /specifications?[:\s]+([^\n]+)/i
+            ];
+
+            patterns.forEach((pattern, index) => {
+                const match = response.match(pattern);
+                if (match) {
+                    const fieldName = ['project', 'vendor', 'timeline', 'budget', 'cost', 'requirements', 'specifications'][index];
+                    extractedData[fieldName] = {
+                        value: match[1].trim(),
+                        confidence: 0.8,
+                        source_section: 'extracted'
+                    };
+                }
+            });
+
+            // If we found some data, return it
+            if (Object.keys(extractedData).length > 0) {
+                logger.info('Extracted data using pattern matching');
+                return extractedData;
+            }
+
+            // Fallback: return the raw response as a single field
+            logger.warn('Could not parse structured data, returning raw response');
+            return {
+                raw_analysis: {
+                    value: response,
+                    confidence: 0.5,
+                    source_section: 'raw'
+                }
+            };
+
         } catch (error) {
             logger.error('Error parsing LLM response:', error);
             // Return empty object if parsing fails
-            return {};
+            return {
+                error: {
+                    value: 'Failed to parse response',
+                    confidence: 0.0,
+                    source_section: 'error'
+                }
+            };
         }
     }
 } 
