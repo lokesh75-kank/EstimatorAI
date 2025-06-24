@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { DataSourceFormData } from '@/types/dataSources';
 import { Step1ChooseType } from './wizard/Step1ChooseType';
 import { Step2ConnectionDetails } from './wizard/Step2ConnectionDetails';
+import { Step2FileUpload } from './wizard/Step2FileUpload';
 import { Step3FieldMapping } from './wizard/Step3FieldMapping';
 import { Step4CacheSync } from './wizard/Step4CacheSync';
 import { Step5ReviewTest } from './wizard/Step5ReviewTest';
@@ -93,13 +94,23 @@ export const AddSourceWizard: React.FC<AddSourceWizardProps> = ({
           />
         );
       case 2:
-        return (
-          <Step2ConnectionDetails
-            formData={formData}
-            onComplete={handleStepComplete}
-            onBack={handleStepBack}
-          />
-        );
+        if (formData.type === 'file') {
+          return (
+            <Step2FileUpload
+              formData={formData}
+              onComplete={handleStepComplete}
+              onBack={handleStepBack}
+            />
+          );
+        } else {
+          return (
+            <Step2ConnectionDetails
+              formData={formData}
+              onComplete={handleStepComplete}
+              onBack={handleStepBack}
+            />
+          );
+        }
       case 3:
         return (
           <Step3FieldMapping

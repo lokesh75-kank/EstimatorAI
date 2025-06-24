@@ -14,29 +14,12 @@ import type {
   ErrorResponse
 } from '@/types/api';
 
-// Get API URL from environment with validation
-const getApiUrl = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    return 'http://localhost:3001/api';
-  }
-  
-  // Ensure URL ends with /api
-  if (!apiUrl.endsWith('/api')) {
-    return apiUrl.endsWith('/') ? `${apiUrl}api` : `${apiUrl}/api`;
-  }
-  
-  return apiUrl;
-};
-
-const API_BASE_URL = getApiUrl();
-
 class ApiService {
   private api: AxiosInstance;
 
   constructor() {
     this.api = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: this.getBaseUrl(),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -67,6 +50,15 @@ class ApiService {
         return Promise.reject(error);
       }
     );
+  }
+
+  getBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+      // Client-side: use relative URL
+      return '/api';
+    }
+    // Server-side: use environment variable or default
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   }
 
   // Auth endpoints
@@ -191,26 +183,24 @@ export const estimationApi = {
   // Get all estimations
   getEstimations: async (): Promise<Estimation[]> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/estimations`);
+      const baseUrl = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
+      const response = await axios.get(`${baseUrl}/estimations`);
       return response.data;
     } catch (error) {
       console.error('Error fetching estimations:', error);
-      return [];
+      throw error;
     }
   },
 
   // Get dashboard statistics
   getDashboardStats: async (): Promise<DashboardStats> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/estimations/stats`);
+      const baseUrl = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
+      const response = await axios.get(`${baseUrl}/estimations/stats`);
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      return {
-        total: 0,
-        completed: 0,
-        inProgress: 0
-      };
+      throw error;
     }
   }
 }; 

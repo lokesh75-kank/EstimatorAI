@@ -51,6 +51,29 @@ export const useProjectSession = () => {
   const [error, setError] = useState<string | null>(null);
   const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Initialize session from localStorage on mount
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        const storedSessionId = localStorage.getItem('projectSessionId');
+        if (storedSessionId) {
+          console.log('Found stored session ID:', storedSessionId);
+          await loadSession(storedSessionId);
+        } else {
+          console.log('No stored session found, creating new session');
+          await createSession();
+        }
+      } catch (error) {
+        console.error('Error initializing session:', error);
+        // Clear invalid session and create new one
+        localStorage.removeItem('projectSessionId');
+        await createSession();
+      }
+    };
+
+    initializeSession();
+  }, []); // Empty dependency array - only run on mount
+
   const createSession = async (initialData: Partial<ProjectFormData> = {}) => {
     setLoading(true);
     setError(null);
@@ -91,7 +114,11 @@ export const useProjectSession = () => {
   };
 
   const updateSession = async (data: Partial<ProjectFormData>, step?: number) => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      console.warn('No session ID available, creating new session');
+      await createSession(data);
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -195,11 +222,16 @@ export const useProjectSession = () => {
     if (autoSaveTimeout.current) {
       clearTimeout(autoSaveTimeout.current);
     }
-    
+
+    // Only auto-save if not loading and no error
+    if (loading || error) return;
+
     // Set new timeout for auto-save
     autoSaveTimeout.current = setTimeout(() => {
       if (sessionId && data) {
-        updateSession(data, currentStep).catch(console.error);
+        updateSession(data, currentStep).catch((err) => {
+          setError('Auto-save failed: ' + (err?.message || err));
+        });
       }
     }, 1000); // 1 second delay
   };

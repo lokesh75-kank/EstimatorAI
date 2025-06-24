@@ -51,71 +51,19 @@ const ProjectsPage: React.FC = () => {
     }
   }, []);
 
-  // Mock data for demonstration
+  // Fetch real projects from backend
   useEffect(() => {
-    const mockProjects: Project[] = [
-      {
-        id: '1',
-        projectName: 'Downtown Office Complex',
-        projectDescription: 'Fire & security system for 15-story office building',
-        buildingType: 'office',
-        squareFootage: 250000,
-        clientName: 'ABC Corporation',
-        projectLocation: 'Downtown, City',
-        status: 'in_progress',
-        priority: 'high',
-        createdAt: '2024-01-15',
-        updatedAt: '2024-01-20',
-        estimatedCost: 125000,
-        estimationStatus: 'completed',
-        uploadedFiles: [
-          { id: '1', name: 'floor_plans.pdf', size: 2048576, type: 'application/pdf', url: '/uploads/floor_plans.pdf' },
-          { id: '2', name: 'specifications.docx', size: 1048576, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '/uploads/specifications.docx' }
-        ]
-      },
-      {
-        id: '2',
-        projectName: 'Residential Tower A',
-        projectDescription: 'Security system for luxury residential complex',
-        buildingType: 'residential',
-        squareFootage: 180000,
-        clientName: 'Luxury Developers Inc',
-        projectLocation: 'Uptown District',
-        status: 'draft',
-        priority: 'medium',
-        createdAt: '2024-01-18',
-        updatedAt: '2024-01-18',
-        estimationStatus: 'not_started',
-        uploadedFiles: [
-          { id: '3', name: 'building_specs.pdf', size: 3145728, type: 'application/pdf', url: '/uploads/building_specs.pdf' }
-        ]
-      },
-      {
-        id: '3',
-        projectName: 'Industrial Warehouse',
-        projectDescription: 'Fire suppression system for manufacturing facility',
-        buildingType: 'industrial',
-        squareFootage: 500000,
-        clientName: 'Manufacturing Co',
-        projectLocation: 'Industrial Zone',
-        status: 'completed',
-        priority: 'high',
-        createdAt: '2024-01-10',
-        updatedAt: '2024-01-25',
-        estimatedCost: 250000,
-        actualCost: 245000,
-        estimationStatus: 'completed',
-        uploadedFiles: [
-          { id: '4', name: 'warehouse_layout.pdf', size: 4194304, type: 'application/pdf', url: '/uploads/warehouse_layout.pdf' },
-          { id: '5', name: 'fire_safety_requirements.docx', size: 2097152, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '/uploads/fire_safety_requirements.docx' }
-        ]
-      }
-    ];
-
-    setTimeout(() => {
-      setProjects(mockProjects);
-      setIsLoading(false);
-    }, 1000);
+    setIsLoading(true);
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        setProjects(data);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        setError('Failed to fetch projects');
+        setIsLoading(false);
+      });
   }, []);
 
   const getStatusBadge = (status: Project['status']) => {

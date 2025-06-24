@@ -249,9 +249,41 @@ const CreateProjectPage: React.FC = () => {
     setError(null);
     
     try {
+      console.log('Submit clicked - Current completedSteps:', completedSteps);
+      console.log('Submit clicked - Current projectData:', projectData);
+      
+      // Add current step (step 4) to completedSteps if not already there
+      const updatedCompletedSteps = completedSteps.includes(4) ? completedSteps : [...completedSteps, 4];
+      console.log('Submit clicked - Updated completedSteps:', updatedCompletedSteps);
+      
       // Validate all steps are complete
-      if (completedSteps.length < 4) {
-        throw new Error('Please complete all steps before creating the project');
+      if (updatedCompletedSteps.length < 4) {
+        const missingSteps = [];
+        for (let i = 1; i <= 4; i++) {
+          if (!updatedCompletedSteps.includes(i)) {
+            missingSteps.push(i);
+          }
+        }
+        
+        const stepNames = {
+          1: 'Project Details',
+          2: 'Requirements', 
+          3: 'Data Sources',
+          4: 'Review & Create'
+        };
+        
+        const missingStepNames = missingSteps.map(step => stepNames[step as keyof typeof stepNames]).join(', ');
+        
+        console.log('Submit clicked - Missing steps:', missingSteps);
+        console.log('Submit clicked - Missing step names:', missingStepNames);
+        
+        throw new Error(`Please complete the following steps before creating the project: ${missingStepNames}`);
+      }
+
+      // Update session with step 4 completed
+      if (!completedSteps.includes(4)) {
+        console.log('Submit clicked - Adding step 4 to completedSteps');
+        await updateSession({}, 4);
       }
 
       // Save to permanent database
@@ -276,6 +308,7 @@ const CreateProjectPage: React.FC = () => {
       // Redirect to projects dashboard with success message
       router.push('/projects?success=true');
     } catch (err: any) {
+      console.error('Submit error:', err);
       setError(err.message || 'Failed to create project');
     } finally {
       setIsSubmitting(false);
@@ -794,17 +827,18 @@ const ProjectDetailsStep: React.FC<{
 
 const DataSourcesStep: React.FC<{ 
   projectData: ProjectFormData | null;
-  updateSession: (data: Partial<ProjectFormData>) => Promise<void>;
+  updateSession: (data: Partial<ProjectFormData>, step?: number) => Promise<void>;
   loading: boolean;
 }> = ({ projectData, updateSession, loading: sessionLoading }) => {
   const [aiSourcingEnabled, setAiSourcingEnabled] = React.useState(true);
   const [aiState, setAiState] = React.useState<'idle' | 'loading' | 'success' | 'error'>('loading');
   const [aiSamples, setAiSamples] = React.useState<any[]>([]);
   const [aiError, setAiError] = React.useState<string | null>(null);
+  const [stepCompleted, setStepCompleted] = React.useState(false);
 
   // Simulate AI sourcing (replace with real API call)
   React.useEffect(() => {
-    if (!aiSourcingEnabled) return;
+    if (!aiSourcingEnabled || stepCompleted) return;
     setAiState('loading');
     setAiError(null);
     setTimeout(() => {
@@ -816,12 +850,16 @@ const DataSourcesStep: React.FC<{
           { code: 'BX-3003', description: 'Backbox', price: 7.5, vendor: 'Graybar', source: 'Graybar API' },
         ]);
         setAiState('success');
+        // Mark step 3 as completed when AI sourcing is successful
+        console.log('DataSourcesStep: Marking step 3 as completed');
+        setStepCompleted(true);
+        updateSession({}, 3).catch(console.error);
       } else {
         setAiError('Vendor sourcing failed. Please check your network or configure a manual source.');
         setAiState('error');
       }
     }, 1800);
-  }, [aiSourcingEnabled]);
+  }, [aiSourcingEnabled, stepCompleted]); // Remove updateSession from dependencies
 
   return (
     <div className="space-y-6">
@@ -971,7 +1009,7 @@ const DataSourcesStep: React.FC<{
 
 const RequirementsStep: React.FC<{ 
   projectData: ProjectFormData | null;
-  updateSession: (data: Partial<ProjectFormData>) => Promise<void>;
+  updateSession: (data: Partial<ProjectFormData>, step?: number) => Promise<void>;
   loading: boolean;
 }> = ({ projectData, updateSession, loading: sessionLoading }) => {
   const [uploadedFiles, setUploadedFiles] = useState<Array<{
@@ -1000,7 +1038,16 @@ const RequirementsStep: React.FC<{
       console.log('No uploaded files in session, clearing local state');
       setUploadedFiles([]);
     }
-  }, [projectData]);
+  }, [projectData?.uploadedFiles]); // Only depend on uploadedFiles, not entire projectData
+
+  // Mark step as completed when files are uploaded - but only if not already completed
+  useEffect(() => {
+    if (uploadedFiles.length > 0 && uploadedFiles.every(file => file.status === 'success')) {
+      console.log('RequirementsStep: Marking step 2 as completed');
+      // Only update if we haven't already marked this step as completed
+      updateSession({ uploadedFiles }, 2).catch(console.error);
+    }
+  }, [uploadedFiles]); // Remove updateSession from dependencies to prevent infinite loop
 
   // Show loading state while session is loading
   if (sessionLoading) {
@@ -1063,15 +1110,6 @@ const RequirementsStep: React.FC<{
         setUploadedFiles(prev => prev.map(f => 
           f.id === fileId ? updatedFile : f
         ));
-
-        // Update session with uploaded files
-        const currentFiles = uploadedFiles.filter(f => f.id !== fileId);
-        const allFiles = [...currentFiles, updatedFile];
-        
-        console.log('Updating session with files:', allFiles);
-        await updateSession({
-          uploadedFiles: allFiles
-        });
 
       } catch (error: any) {
         console.error('Upload error:', error);
@@ -1196,7 +1234,7 @@ const RequirementsStep: React.FC<{
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
@@ -1301,12 +1339,62 @@ const ReviewStep: React.FC<{ projectData: ProjectFormData }> = ({ projectData })
     return '📄';
   };
 
+  // Get session data for debugging
+  const sessionId = typeof window !== 'undefined' ? localStorage.getItem('projectSessionId') : null;
+
+  // Debug function to manually mark all steps as completed
+  const markAllStepsCompleted = async () => {
+    try {
+      const response = await fetch('/api/project-session', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          projectData: projectData,
+          currentStep: 4,
+          completedSteps: [1, 2, 3, 4]
+        })
+      });
+      
+      if (response.ok) {
+        console.log('All steps marked as completed');
+        window.location.reload(); // Refresh to see the updated state
+      } else {
+        console.error('Failed to mark steps as completed');
+      }
+    } catch (error) {
+      console.error('Error marking steps as completed:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Review Project Details</h2>
         <p className="text-sm text-gray-600">Review all project information before creating.</p>
       </div>
+
+      {/* Debug Section - Remove this in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-yellow-900 mb-2">Debug Information</h4>
+          <div className="text-xs text-yellow-800 space-y-1">
+            <p>Session ID: {sessionId || 'None'}</p>
+            <p>Project Name: {projectData.projectName || 'Not set'}</p>
+            <p>Building Type: {projectData.buildingType || 'Not set'}</p>
+            <p>Square Footage: {projectData.squareFootage || 'Not set'}</p>
+            <p>Uploaded Files: {projectData.uploadedFiles?.length || 0} files</p>
+            <p>Current Step: 4 (Review & Create)</p>
+            <p>Note: Step 4 will be automatically marked as completed when you click "Create Project"</p>
+          </div>
+          <button
+            onClick={markAllStepsCompleted}
+            className="mt-3 px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
+          >
+            Debug: Mark All Steps Completed
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
