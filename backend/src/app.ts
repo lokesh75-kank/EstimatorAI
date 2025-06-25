@@ -3,6 +3,7 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import { createEstimateRouter } from './routes/estimate';
 import documentRoutes from './routes/document.routes';
+import imageRoutes from './routes/image.routes';
 import projectRoutes from './routes/project.routes';
 import { RulesEngine } from './bom/RulesEngine';
 import { CostEstimator } from './cost/CostEstimator';
@@ -58,6 +59,7 @@ app.use(express.json());
 // Routes
 app.use('/api/estimate', createEstimateRouter(estimationService));
 app.use('/api/projects', projectRoutes);
+app.use('/api/images', imageRoutes);
 app.use('/', documentRoutes);
 
 // Health check endpoint

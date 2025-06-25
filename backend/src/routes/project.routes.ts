@@ -36,9 +36,9 @@ router.post('/', async (req, res) => {
 });
 
 // Upload project files
-router.post('/:projectId/files', upload.array('files'), async (req, res) => {
+router.post('/:id/files', upload.array('files'), async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const { id } = req.params;
     const files = req.files as Express.Multer.File[];
     // TODO: Implement file upload handling
     res.json({ message: 'File upload not implemented yet' });
@@ -48,9 +48,9 @@ router.post('/:projectId/files', upload.array('files'), async (req, res) => {
 });
 
 // Get project details
-router.get('/:projectId', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const { id } = req.params;
     await projectController.getById(req, res);
   } catch (error) {
     res.status(404).json({ error: 'Project not found' });
@@ -63,6 +63,16 @@ router.get('/', async (req, res) => {
     await projectController.getAll(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching projects' });
+  }
+});
+
+// Delete individual project
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await projectController.delete(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting project' });
   }
 });
 

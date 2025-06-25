@@ -1,5 +1,6 @@
 import { ProjectParams, BOMRule, BOMItem } from './types';
 import { OpenAI } from 'openai';
+import { config } from '../config/env';
 
 export class RulesEngine {
   private rules: Record<string, BOMRule>;
@@ -109,7 +110,7 @@ export class RulesEngine {
       }`;
 
     const response = await this.openai.chat.completions.create({
-      model: "gpt-4",
+      model: config.openai.model,
       messages: [{ role: "user", content: prompt }],
       functions: [{
         name: "suggest_bom_rules",

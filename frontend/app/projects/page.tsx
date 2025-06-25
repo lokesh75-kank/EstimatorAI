@@ -34,12 +34,16 @@ const ProjectsPage: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'draft' | 'in_progress' | 'completed'>('all');
   const [estimatingProject, setEstimatingProject] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [deletingProject, setDeletingProject] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Check for success message from URL params
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       setShowSuccessMessage(true);
+      setSuccessMessage('Project created successfully! You can now start AI cost estimation.');
       // Remove the success parameter from URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
@@ -54,14 +58,30 @@ const ProjectsPage: React.FC = () => {
   // Fetch real projects from backend
   useEffect(() => {
     setIsLoading(true);
+    setError(null);
+    
     fetch('/api/projects')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setProjects(data);
+        // Ensure data is an array and has the expected structure
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          console.error('API returned non-array data:', data);
+          setProjects([]);
+          setError('Invalid data format received from server');
+        }
         setIsLoading(false);
       })
       .catch(err => {
-        setError('Failed to fetch projects');
+        console.error('Failed to fetch projects:', err);
+        setError('Failed to fetch projects. Please try again later.');
+        setProjects([]);
         setIsLoading(false);
       });
   }, []);
@@ -73,6 +93,15 @@ const ProjectsPage: React.FC = () => {
       completed: { color: 'bg-green-100 text-green-800', label: 'Completed' },
       archived: { color: 'bg-gray-100 text-gray-800', label: 'Archived' }
     };
+
+    // Handle cases where status is undefined or invalid
+    if (!status || !statusConfig[status]) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Unknown
+        </span>
+      );
+    }
 
     const config = statusConfig[status];
     return (
@@ -88,6 +117,15 @@ const ProjectsPage: React.FC = () => {
       medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Medium' },
       high: { color: 'bg-red-100 text-red-800', label: 'High' }
     };
+
+    // Handle cases where priority is undefined or invalid
+    if (!priority || !priorityConfig[priority]) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Unknown
+        </span>
+      );
+    }
 
     const config = priorityConfig[priority];
     return (
@@ -172,6 +210,40 @@ const ProjectsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    setDeletingProject(projectId);
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+
+      // Remove project from state
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+      setProjectToDelete(null);
+      
+      // Show success message
+      setShowSuccessMessage(true);
+      setSuccessMessage('Project deleted successfully');
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Delete project error:', error);
+      setError('Failed to delete project. Please try again.');
+    } finally {
+      setDeletingProject(null);
+    }
+  };
+
   const filteredProjects = projects.filter(project => 
     filter === 'all' ? true : project.status === filter
   );
@@ -223,7 +295,7 @@ const ProjectsPage: React.FC = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-green-800">
-                  Project created successfully! You can now start AI cost estimation.
+                  {successMessage}
                 </p>
               </div>
               <div className="ml-auto pl-3">
@@ -243,6 +315,32 @@ const ProjectsPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  onClick={() => setError(null)}
+                  className="inline-flex text-red-400 hover:text-red-600"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Filters and Stats */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -312,10 +410,10 @@ const ProjectsPage: React.FC = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {project.projectName}
+                        {project.projectName || 'Unnamed Project'}
                       </h3>
                       <p className="text-sm text-gray-600 truncate">
-                        {project.clientName}
+                        {project.clientName || 'No client specified'}
                       </p>
                     </div>
                     <div className="flex flex-col items-end space-y-2">
@@ -330,20 +428,20 @@ const ProjectsPage: React.FC = () => {
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      {project.buildingType.charAt(0).toUpperCase() + project.buildingType.slice(1)}
+                      {project.buildingType ? project.buildingType.charAt(0).toUpperCase() + project.buildingType.slice(1) : 'Unknown Building Type'}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                       </svg>
-                      {project.squareFootage.toLocaleString()} sq ft
+                      {project.squareFootage ? `${project.squareFootage.toLocaleString()} sq ft` : 'Size not specified'}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {project.projectLocation}
+                      {project.projectLocation || 'Location not specified'}
                     </div>
                     {project.uploadedFiles && project.uploadedFiles.length > 0 && (
                       <div className="flex items-center text-sm text-gray-600">
@@ -431,6 +529,24 @@ const ProjectsPage: React.FC = () => {
                         Retry AI Estimation
                       </button>
                     )}
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => setProjectToDelete(project)}
+                      disabled={deletingProject === project.id}
+                      className="w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {deletingProject === project.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          🗑️ Delete Project
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -438,6 +554,45 @@ const ProjectsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-gray-900">Delete Project</h3>
+              </div>
+            </div>
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete <strong>"{projectToDelete.projectName || 'Unnamed Project'}"</strong>? 
+                This action cannot be undone and will permanently remove the project and all associated data.
+              </p>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setProjectToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteProject(projectToDelete.id)}
+                disabled={deletingProject === projectToDelete.id}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deletingProject === projectToDelete.id ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

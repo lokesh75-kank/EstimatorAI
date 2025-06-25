@@ -19,7 +19,7 @@ const SUPPORTED_ARCHIVE_TYPES = [
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Starting document upload process...');
+    console.log('Starting file upload process...');
     
     // Get the file from the request
     const formData = await request.formData();
@@ -66,72 +66,155 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), 'uploads');
-    console.log('Upload directory path:', uploadDir);
+    // Route to appropriate backend endpoint based on file type
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
     
-    try {
-      if (!existsSync(uploadDir)) {
-        console.log('Creating upload directory...');
-        await mkdir(uploadDir, { recursive: true });
+    if (isImage) {
+      console.log('Routing image to backend image processing...');
+      
+      // Create form data for backend
+      const backendFormData = new FormData();
+      backendFormData.append('image', file);
+      backendFormData.append('projectType', 'fire_security_systems');
+      
+      try {
+        const backendResponse = await fetch(`${backendUrl}/api/images/process`, {
+          method: 'POST',
+          body: backendFormData
+        });
+        
+        if (!backendResponse.ok) {
+          const errorData = await backendResponse.text();
+          console.error('Backend image processing failed:', errorData);
+          throw new Error(`Backend processing failed: ${errorData}`);
+        }
+        
+        const backendResult = await backendResponse.json();
+        console.log('Backend image processing successful:', backendResult);
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Image uploaded and processed successfully',
+          file: {
+            originalName: file.name,
+            type: file.type,
+            size: file.size,
+            uploadedAt: new Date().toISOString(),
+            processingType: 'image'
+          },
+          backendResult: backendResult,
+          processingStatus: 'completed'
+        });
+        
+      } catch (backendError: any) {
+        console.error('Backend image processing error:', backendError);
+        return NextResponse.json(
+          { 
+            error: 'Failed to process image',
+            details: backendError?.message || 'Backend processing failed',
+            timestamp: new Date().toISOString()
+          },
+          { status: 500 }
+        );
       }
-    } catch (dirError) {
-      console.error('Error creating upload directory:', dirError);
-      return NextResponse.json(
-        { error: 'Failed to create upload directory', details: dirError instanceof Error ? dirError.message : 'Unknown error' },
-        { status: 500 }
-      );
+      
+    } else {
+      // For documents and archives, save to backend documents directory and route to backend
+      console.log('Routing document to backend document processing...');
+      
+      // Create backend uploads directory if it doesn't exist
+      const uploadDir = join(process.cwd(), 'backend', 'uploads', 'documents');
+      console.log('Upload directory path:', uploadDir);
+      
+      try {
+        if (!existsSync(uploadDir)) {
+          console.log('Creating backend upload directory...');
+          await mkdir(uploadDir, { recursive: true });
+        }
+      } catch (dirError) {
+        console.error('Error creating upload directory:', dirError);
+        return NextResponse.json(
+          { error: 'Failed to create upload directory', details: dirError instanceof Error ? dirError.message : 'Unknown error' },
+          { status: 500 }
+        );
+      }
+
+      // Generate unique filename to prevent conflicts
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 15);
+      const fileExtension = file.name.split('.').pop();
+      const uniqueFilename = `${timestamp}-${randomSuffix}.${fileExtension}`;
+      
+      // Save file to backend documents directory
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const filePath = join(uploadDir, uniqueFilename);
+      console.log('Saving file to:', filePath);
+      
+      try {
+        await writeFile(filePath, buffer);
+        console.log('File saved successfully to backend');
+      } catch (writeError) {
+        console.error('Error writing file:', writeError);
+        return NextResponse.json(
+          { error: 'Failed to save file', details: writeError instanceof Error ? writeError.message : 'Unknown error' },
+          { status: 500 }
+        );
+      }
+
+      // Route to backend document processing
+      try {
+        const backendResponse = await fetch(`${backendUrl}/api/documents/process-json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filePath: filePath,
+            fileName: file.name,
+            projectType: 'fire_security_systems',
+            content: buffer.toString('utf-8') // For text-based documents
+          })
+        });
+        
+        if (!backendResponse.ok) {
+          const errorData = await backendResponse.text();
+          console.error('Backend document processing failed:', errorData);
+          // Don't throw error here, just log it and return file info
+        } else {
+          const backendResult = await backendResponse.json();
+          console.log('Backend document processing successful:', backendResult);
+        }
+        
+      } catch (backendError) {
+        console.error('Backend document processing error:', backendError);
+        // Don't throw error here, just log it and return file info
+      }
+
+      // Prepare response data
+      const fileInfo = {
+        originalName: file.name,
+        storedName: uniqueFilename,
+        size: file.size,
+        type: file.type,
+        fileUrl: `/backend/uploads/documents/${uniqueFilename}`, // Updated URL path
+        localPath: filePath,
+        uploadedAt: new Date().toISOString(),
+        processingType: 'document'
+      };
+
+      console.log('File upload successful:', fileInfo);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Document uploaded successfully',
+        file: fileInfo,
+        processingStatus: 'pending', // Documents will be processed asynchronously
+        estimatedProcessingTime: '2-5 minutes'
+      });
     }
-
-    // Generate unique filename to prevent conflicts
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 15);
-    const fileExtension = file.name.split('.').pop();
-    const uniqueFilename = `${timestamp}-${randomSuffix}.${fileExtension}`;
-    
-    // Save file to local storage
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const filePath = join(uploadDir, uniqueFilename);
-    console.log('Saving file to:', filePath);
-    
-    try {
-      await writeFile(filePath, buffer);
-      console.log('File saved successfully');
-    } catch (writeError) {
-      console.error('Error writing file:', writeError);
-      return NextResponse.json(
-        { error: 'Failed to save file', details: writeError instanceof Error ? writeError.message : 'Unknown error' },
-        { status: 500 }
-      );
-    }
-
-    // Prepare response data
-    const fileInfo = {
-      originalName: file.name,
-      storedName: uniqueFilename,
-      size: file.size,
-      type: file.type,
-      fileUrl: `/uploads/${uniqueFilename}`, // URL for local file access
-      localPath: filePath,
-      uploadedAt: new Date().toISOString()
-    };
-
-    console.log('File upload successful:', fileInfo);
-
-    // For development, we'll return the file info directly
-    // In production, you might want to send this to a backend service for processing
-    const response = {
-      success: true,
-      message: 'File uploaded successfully',
-      file: fileInfo,
-      processingStatus: 'pending', // Files will be processed asynchronously
-      estimatedProcessingTime: '2-5 minutes'
-    };
-
-    return NextResponse.json(response);
 
   } catch (error: any) {
-    console.error('Error in document upload:', error);
+    console.error('Error in file upload:', error);
     return NextResponse.json(
       { 
         error: 'Failed to upload file',
